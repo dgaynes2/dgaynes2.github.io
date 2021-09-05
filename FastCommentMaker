@@ -1,0 +1,4756 @@
+import tkinter as tk
+from tkinter import ttk
+from tkinter.scrolledtext import ScrolledText
+import pyqrcode
+##-VERSIONS-############################################################################################################
+# Alpha
+# 1.0 General creation and population of data
+# 1.1 Shifting between English and Chinese
+# 1.2 Menus for 'Help' and 'Useful phrases'
+# 1.3 Themes
+# 2.0 Reformatting code for convenience and organizaion
+# 2.1 Menu for 'Parts of Speech'
+# 2.2 Menu for 'Phonics'
+# 2.2.1 Capitalization fixes
+# 2.2.2 Grammar/Vocab selection now selects correct book in dropdown menu
+# 2.3 Formatting
+# 2.4 altogether -> QRcode option
+# 3.0 Complete reformatting
+########################################################################################################################
+class AppWindow:
+    def __init__(self,root):
+        self.root = root
+        self.menubar = tk.Menu(self.root)
+        self.root['menu'] = self.menubar
+        BOOK = ['',
+                'Hello Teddy 1', 'Hello Teddy 2', 'Hello Teddy 3', 'Hello Teddy 4', 'Hello Teddy 5', 'Hello Teddy 6',
+                'Guess What 1', 'Guess What 2', 'Guess What 3', 'Guess What 4',
+                'SS', 'MM',  # 'FF',
+                'MT1', 'MT2', 'MT3', 'MT4', 'MT5', 'MT6']  # , 'MT7', 'MT8', 'MT9', 'MT10', 'MT11', 'MT12']
+        BEHAVIOR = [
+            ('说得好', '说：发音还不错，语言比较流畅', 'Good speaking', 'Their speaking is good'),
+            ('说不好', '说：部分单词发音有问句，需要及时复习巩固', 'Bad speaking', 'Their speaking is not good.  They should practice'),
+            ('写得好', '写：组句能力比较好，书写字迹清晰，非常棒', 'Good writing', 'Their writing is good'),
+            ('写不好', '写：组句能力需要提高哦，还无法自己造句，需要有意识进行提高哦', 'Bad writing', 'It is difficult for them to make full sentences'),
+            ('阅读好', '读：基本能够理解文章大意，掌握文章内容。能够完整翻译全文', 'Good reading',
+             'They can almost completely understand the readings'),
+            ('阅读不好', '读：能够在老师帮助下，理解文章内容。但是对于文章翻译，还需要加强哦', 'Bad reading',
+             'It is difficult for them to understand the meaning of the readings'),
+            ('拼写得好', '拼写：听写情况还不错哦，基本掌握单词中英文意思', 'Good spelling', 'Their spelling is good with very few errors'),
+            ('拼写不好', '拼写：听写情况比较糟糕，需要课后继续记忆哦，错误的单词抄写3遍', 'Bad spelling',
+             'Their spelling is bad.  They should write the misspelled words 3 times each'),
+            ('听力好', '听：听力比较好，能够理解听力全文，并复述', 'Good listening',
+             'They can understand what they hear without much repetition'),
+            ('听力不好', '听：听力部分，难度比较大', 'Bad listening',
+             'Listening is very difficult for them.  I have to repeat the same thing many times')]
+        font_labels = ['Times',12,'normal']
+        font_checkboxes = ['Times', '11', 'normal']
+        IPA = [("iː", "shEEp", 1, 0, 'white'), ("ɪ", "shIp", 1, 1, 'white'), ("ʊ", "gOOd", 1, 2, 'white'),
+               ("uː", "shOOt", 1, 3, 'white'), ("ɪə", "hERE", 1, 4, 'light gray'), ("eɪ", "wAIt", 1, 5, 'light gray'),
+               ("ˈ", "stress", 1, 7, "light gray"),
+               ("e", "bEd", 2, 0, 'white'), ("ə", "hER", 2, 1, 'white'), ("ɜː", "bIRd", 2, 2, 'white'),
+               ("ɔː", "dOOR", 2, 3, 'white'), ("ʊə", "yOUr", 2, 4, 'light gray'), ("ɔɪ", "bOY", 2, 5, 'light gray'),
+               ("əʊ", "shOW", 2, 6, 'light gray'),
+               ("æ", "cAt", 3, 0, 'white'), ("ʌ", "cUp", 3, 1, 'white'), ("ɑː", "cAr", 3, 2, 'white'),
+               ("ɒ", "On", 3, 3, 'white'), ("eə", "hAIR", 3, 4, 'light gray'), ("aɪ", "mY", 3, 5, 'light gray'),
+               ("aʊ", "cOW", 3, 6, 'light gray'),
+               ("p", "Pea", 5, 0, 'yellow'), ("b", "Boat", 5, 1, 'yellow'), ("t", "Tea", 5, 2, 'yellow'),
+               ("d", "Dog", 5, 3, 'yellow'), ("tʃ", "CHeese", 5, 4, 'yellow'), ("dʒ", "June", 5, 5, 'yellow'),
+               ("k", "Car", 5, 6, 'yellow'), ("g", "Go", 5, 7, 'yellow'),
+               ("f", "Fly", 6, 0, 'yellow'), ("v", "Video", 6, 1, 'yellow'), ("θ", "THink", 6, 2, 'yellow'),
+               ("ð", "THis", 6, 3, 'yellow'), ("s", "See", 6, 4, 'yellow'), ("z", "Zoo", 6, 5, 'yellow'),
+               ("ʃ", "SHoe", 6, 6, 'yellow'), ("ʒ", "televiSion", 6, 7, 'yellow'),
+               ("m", "Man", 7, 0, 'yellow'), ("n", "No", 7, 1, 'yellow'), ("ŋ", "siNG", 7, 2, 'yellow'),
+               ("h", "Hat", 7, 3, 'yellow'), ("l", "Love", 7, 4, 'yellow'), ("r", "Red", 7, 5, 'yellow'),
+               ("w", "Wet", 7, 6, 'yellow'), ("j", "Yes", 7, 7, 'yellow')]
+        POS = [("adjective", "形容词"), ("adverb", "副词"), ("collective noun", "集合名词"), ("content word", "实词"),
+               ("countable noun", "可数的名词"), ("past participle", "过去分词"), ("plural", "复数"), ("function word", "虚词"),
+               ("future", "将来时"), ("infinitive", "不定时"),
+               ("intonation", "语调"), ("mother tongue", "母语"), ("yes/no question", "是非文具"), ("noun", "名词"),
+               ("object", "宾语"), ("past", "过去时"),
+               ("predicate", "谓语"), ("prefix", "前缀"), ("pronoun", "代词"), ("present", "现在时"),
+               ("present continuous", "现在进行时"),
+               ("present perfect", "现在完成时"), ("singular", "单数"), ("slang", "俚语"), ("subject", "主语"), ("suffix", "后缀"),
+               ("uncountable noun", "不可数的名词"), ("verb", "动词"), ("voiced", "浊音"), ("voiceless", "清音"),
+               ("wh-question", "特指问句"),
+               ("preposition", "介词"), ("proper noun", "专有名词"), ("sentence", "句子"), ("syllable", "音节"),
+               ("translate/ion", "翻译"),
+               ("word", "单词"), ("letter", "字母"), ("gerund", "动名词"), ("compound", "复合词"), ("vocabulary", "词汇")]
+        MT1 = [
+            (('Be', '''be动词
+
+肯定句
+I am...
+You/we/they are...
+he/she/it is...
+
+be动词的缩写形式
+I'm ...
+You/we/they're...
+he/she/it's...
+
+否定句
+I am not...
+You/we/they are not...
+he/she/it is not...
+
+be动词的缩写形式
+I'm not...
+You/we/they aren't...
+he/she/it isn't...
+
+问句
+Am I...? 我是不是...？
+Are you/we/they...? 你是不是...？
+Is he/she/it...? 他是不是...？
+
+如果你用be动词，你只可以用形容词，名词，或者动词ing
+I am tall
+You aren't John
+Is she eating?'''),
+     ('Question words', '''Question words wh问句
+
+who 谁 - who are you? 你是谁?
+what 什么 - What is this? 这是什么?
+where 哪里 - Where are you? 你在哪里?
+why 为什么 - Why is it red? 为什么是红色的?
+how 这么 - How do you go to Beijing? 你怎么去北京?'''),
+     ('Object pronouns', '''Object pronouns 宾语
+
+主语     宾语
+I       me
+you     you
+he      him
+she     her
+it      it
+we      us
+they    them
+
+I see him
+He eats it
+We talk to her'''),
+     ('Possessive \'s\'', '''Possessive 's 所有的‘s’
+
+My mother's 我妈妈的
+dog's 狗的
+John's John的
+
+My mother's favorite color is blue
+我妈妈的最喜欢的颜色是蓝色'''),
+     ('Possessive adjectives', '''Possessive Adjectives 所有的形容词
+
+谁      谁的
+I       my
+you     your
+he      his
+she     her
+it      its*
+we      our
+they    their
+*its = 它的， it's = 它是
+
+My car is big   我的车很大
+Her dog is small    她的够很小'''),
+     ('This/that', '''This/That/These/Those 这个/那个/这些/那些
+
+this 这个
+that 那个
+these 这些
+those 那些
+
+This cat is big 这只猫很大
+That cat is small 那只猫很小
+These dogs are big 这些只够很大
+Those dogs are small 那些只够很小'''),
+     ('There is/are', '''There is/are 有
+
+肯定句
+There is 有 + 单数的名词
+There are 有 + 复数的名词
+否定句
+There isn't 没有 + 单数的名词
+There aren't 没有 + 复数的名词
+问句
+Is there...? 有没有 + 单数的名词...？
+Are there...? 有没有 + 复数的名词...？
+
+There is a cat on the table
+在桌子上有一只猫
+There are two cats on the bed
+在床上有两只猫'''),
+     ('Some/Any', '''Some/Any 一些
+
+Some
+用于句子中
+I want some food
+用于问人要不要什么一些东西
+Would you like some water?
+
+Any
+用于问句中
+Do you have any books?
+用于否定句子
+I don't have any books'''),
+     ('Imperatives', '''Imperatives 祈使句
+
+祈使句没有主语
+
+You go to school.
+不是祈使句。有主语，所以是个现在时句子。
+Go to school.
+没有主语，所以是个命令'''),
+     ('Present simple', '''Present Simple
+
+I/you/we/they eat
+he/she/it eats
+*如果单词的最后的字母是s,x,ch,sh,o加es
+I/you/we/they go
+he/she/it goes
+*如果单词的最后的字母是辅音+y去y加ies
+I/you/we/they study
+he/she/it studies
+
+否定句
+不要改变否定句中的动词。在动词前加“don't”或“doesn't”
+I don't eat
+He doesn't eat
+You don't study
+She doesn't study
+
+问句
+不要改变问句中的动词。在动词前加“do”或“does”
+Do you eat?
+Does he study?
+*否定的第三人称动词没有s,但是don't变成doesn't'''),
+     ('Have got', '''have got 有
+
+肯定句
+I/you/we/they have got...
+he/she/it has got...
+
+否定句
+I/you/we/they haven't got
+he/she/it hasn't got
+
+问句
+Have you got...?
+Has he got...?
+
+I have got a cup of tea
+我有一杯茶
+He hasn't got friends
+他没有朋友
+Have you got glasses?
+你有没有眼镜'''),
+     ('Count/Uncountable', '''Countable and Uncountable 可数和不可数
+
+如果一个名词是可数的，你可以用数字来表示多少。
+one cat
+two books
+ten people
+
+如果一个名词是不可数的，你必须使用像'一些’, ‘很多’, ‘一点’，等等
+a cup of water
+a lot of sugar
+some money''')),
+    (('Countries and Nationalities', """Countries and Nationalities 国家和国籍
+
+The UK(英国) - British(英国的)
+Mexico(墨西哥) - Mexican(墨西哥的)
+The USA(美国) - American(美国的)
+Spain(西班牙) - Spanish(西班牙的)
+Russia(俄罗斯) - Russian(俄罗斯的)
+Brazil(巴西) - Brazilian(巴西的)
+Portugal(葡萄牙) - Portuguese(葡萄牙的)
+Japan(日本) - Japanese(日本的)
+Turkey(土耳其) - Turkish(土耳其的)
+South Africa(南非) - South African(南非的)"""),
+     ('Adjectives', """Adjectives 形容词
+
+new (新的) - old (旧的)
+big (大的) - small (小的)
+expensive (贵的) - cheap (便宜的)
+fast (快的) - slow (慢的)
+clean (干净的) - dirty (脏的)"""),
+     ('Feelings', """Feelings 感觉
+
+angry (生气的)
+bored (无聊的)
+excited (兴奋的)
+cold (冷的)
+hot (热的)
+hungry (饿的)
+tired (累的)
+sad (难过的)
+thirsty (渴的)
+worried (担心的)"""),
+     ('Family', """Family (家人)
+parents(父母)
+mother/mom(妈妈)
+father/dad(爸爸)
+grandfather/grandpa(爷爷)
+grandmother/grandma(奶奶)
+brother(哥哥、弟弟)
+sister(姐姐，妹妹)
+cousin(表亲)
+son(儿子)
+daughter(女儿)
+wife(妻子)
+husband(丈夫)"""),
+     ('Rooms', """bathroom(卫生间)
+bedroom(卧室)
+garage(车库)
+garden(花园)
+hall(走廊)
+kitchen(厨房)
+living room(客厅)"""),
+     ('Furniture', """bed(床)
+fridge(冰箱)
+sofa(沙发)
+cooker(灶具)
+shower(淋浴)
+bath(浴缸)
+armchair(扶手椅)
+toilet(厕所)"""),
+     ('City', """city(城市)
+supermarket(超市)
+bank(银行)
+chemist's(药店)
+library(图书馆)
+museum(博物馆)
+park(公园)
+post office(邮局)
+restaurant(饭店)
+train station(火车站)"""),
+     ('Prep. of Place', """behind(在...后面)
+between(在A和B中)
+in front of(在...前面)
+next to(在...旁边)
+on the corner(在转角)
+opposite(在...对面)"""),
+     ('Gadgets', """tablet(平板电脑)
+laptop(笔记本电脑)
+smartphone(手机)
+tv(电视)
+computer(电脑)
+games console(游戏机)
+mp3 player(MP3播放机)
+GPS(电子地图)
+headphones(耳机)"""),
+     ('Body Parts', """arm(胳膊)
+body(身体)
+ear(耳朵)
+eye(眼睛)
+face(脸)
+foot(脚)
+hand(手)
+leg(腿)
+mouth(嘴)
+nose(鼻子)"""),
+     ('Appearance', """beard(在嘴下面的胡子)
+earring(耳环)
+glasses(眼镜)
+moustache(在嘴上面的胡子)
+short(矮的)
+smile(微笑)
+tall(高的)"""))]
+        MT2 = [
+(('Can (ability)', '''Can 会
+
+I can run fast 我会跑得很快
+He can't cook 他不会做饭
+Can you play tennis? 你会打网球吗'''),
+('Time Prepositions', '''Time Prepositions
+
+in + 年/月/不具体的时候/季节
+I will go to Japan in 2021
+There is no school in June
+I wake up in the morning
+It is hot in summer
+
+on + 一个日
+My birthday is on Tuesday
+There is no school on Christmas
+
+at + 具体的时候
+I go to sleep at 3pm
+
+from + 开始的时候 + to + 结束的时候
+Class is from 3pm to 4pm'''),
+('Present Continuous', '''Present Continuous 现在进行时
+
+be doing
+总是需要be动词，还有动词加ing。没有这些所有部分的句子是不对的
+
+I am eating
+我在吃饭
+You are not going
+你不再去
+Is she sleeping
+她在睡觉吗？
+
+如果动词最后的字母是一个e，去e加ing
+write - writing
+
+有些动词必须把最后一个字母双写。
+run - running
+sit - sitting
+swim - swimming'''),
+('Like Doing', '''Like Doing 喜欢做什么
+
+动词ing 必须用在下面的每个动词之后
+love(爱), like(喜欢), don't like(不喜欢), hate(讨厌)
+
+I like eating
+She likes sleeping
+
+You don't like writing
+He doesn't like running
+
+Does he like watching TV?
+Do we like drawing?'''),
+('Must', '''Must/Mustn't 必须
+
+You must do your homework
+你必须做你的作业
+You mustn't sleep
+你不能睡觉'''),
+('Can (permission)', '''Can 可以
+
+I can watch TV
+我可以看电视
+You can't watch TV
+你不可以看电视
+Can I watch TV?
+我可不可以看电视'''),
+('Would like', '''Would like 想要
+
+I would like the salad
+我想吃沙拉
+Would you like the salad?
+你想不想吃沙拉？
+What would you like to eat?
+你想吃什么?
+
+*比I want礼貌'''),
+('Be动词 past tense', '''Past Simple Be be动词的过去时
+
+肯定句
+I was...
+You/we/they were...
+he/she/it was...
+
+否定句
+I was not...
+You/we/they were not...
+he/she/it was not...
+
+还有可能用be动词的缩写形式
+I wasn't...
+You/we/they weren't...
+he/she/it wasn't...
+
+问句
+Was I...? 我是不是...？
+Were you/we/they...? 你是不是...？
+Was he/she/it...? 他是不是...？
+
+如果你用be动词，你只可以用形容词，名词，或者动词ing
+I was happy
+You weren't at home
+Was she eating?'''),
+('Regular past tense verbs', '''Regular Past Tense Verbs 有规则的过去时
+
+动词加ed
+help + ed > helped
+最后的字母是e的动词加ed
+move + ed > moved
+最后的字母是辅音加y的动词加ed
+study + ed > studied'''),
+('-ed pronunciation', '''怎么说"-ed"
+单词最后的辅音是个清辅音加ed，ed听起来t
+例子：helped，worked
+单词最后的辅音是个浊辅音或者元音加ed，ed听起来d
+例子：moved，tried*
+单词最后的辅音是个t,d加ed，ed听起来ed
+例子：hated，wanted
+
+*去y加ied'''),
+('Irregular past tense verbs', '''Irregular Past Tense Verbs 不规则的过去时
+
+现在时- 过去时
+run   - ran
+come  - came
+give  - gave
+see   - saw
+drink - drank
+find  - found
+get   - got(得到)
+take  - took(拿)
+forget- forgot(忘)
+write - wrote
+go    - went
+fall  - fell(倒)
+know  - knew(知道)
+make  - made
+put   - put(放)
+eat   - ate
+do    - did'''),
+('Past tense questions', '''Past Tense Questions 过去时的问句
+
+一般疑问句 Did ...?
+Did you eat lunch?
+
+wh-单词的问句 wh-单词 + did + ...?
+Who did you see?
+Where did you go?
+What did you eat?'''),
+('Could', '''Could 能的过去时
+
+我昨天能看月了
+I could see the moon yesterday
+
+我去年不会骑自行车
+Last year I couldn't ride a bike'''),
+('Comparatives', '''Comparative Adjectives 比较级
+
+more + 形容词 + than
+
+仅添加er
+quick - quicker
+cheap - cheaper
+This car is cheaper than that car.
+
+有一些必须双写最后的辅音的单词
+big - bigger
+fat - fatter
+The dog is bigger than the cat.
+
+如果最后的字母是辅音加y,去y加ier
+easy - easier
+healthy - healthier
+This game is easier than that game.
+
+不能在长的形容词后面加er,反而在形容词前面放more
+expensive - more expensive
+dangerous - more dangerous
+This road is more dangerous than the other road.
+
+不规则的
+good - better
+bad - worse
+This film is better than the other film.'''),
+('One/ones', '''One/Ones 用来指已经提到的名词
+
+one (单数)
+Which pen do you want?
+I want that one(指的是前述的pen)
+
+ones (复数)
+I like films.
+I always watch really good ones(指的是前述的films)
+''')),
+(('Sports', """football(足球)
+golf(高尔夫球)
+gymnastics(体操)
+skateboarding(滑板运动)
+tennis(网球)
+surfing(冲浪运动)
+ice skating(滑冰)
+basketball(篮球)
+cycling(骑行)
+snowboarding(滑雪板)
+tae kwon do(跆拳道)
+volleyball(排球)"""),
+('Time', """clock(种)
+o'clock(点)
+quarter past(过了15分钟)
+quarter after(过了15分钟)
+half past(X点半)
+quarter to(15分钟到)
+hour(小时)
+minute(分钟)
+second(秒)"""),
+('Months', """month(月)
+January(一月)
+February(二月)
+March(三月)
+April(四月)
+May(五月)
+June(六月)
+July(七月)
+August(八月)
+September(九月)
+October(十月)
+November(十一月)
+December(十二月)"""),
+('Dates', """date(日子)
+year(年)
+month(月)
+first/1st(第一)
+second/2nd(第二)
+third/3rd(第三)
+fourth/4th(第四)"""),
+('Seasons', """season(季节)
+winter(冬天)
+summer(夏天)
+spring(春天)
+autumn(秋天)"""),
+('Instruments', """instrument(乐器)
+singer(歌手)
+drum(鼓)
+guitar(吉他)
+piano(钢琴)
+trumpet(喇叭)
+violin(小提琴)
+concert(音乐会)
+band(乐队)"""),
+('Clothing', """clothing(衣服)
+dress(裙子)
+coat(外套)
+jeans(牛仔裤)
+jumper(毛衣)
+shirt(衬衫)
+shoe(鞋子)
+shorts(短裤)
+skirt(短裙)
+sock(袜子)
+t-shirt(T恤衫)
+trainer(运动鞋)
+trousers(裤子)"""),
+('Food1', """cook/chef(厨师)
+soup(汤)
+salad(沙拉)
+cake(蛋糕)
+omelette(简单卷)
+steak(牛排)
+plate(盘子)
+bowl(碗)"""),
+('Food2', """chicken(肌肉)
+mutton(羊肉)
+pork(猪肉)
+hamburger(汉堡包)
+banana(香蕉)
+orange(橙子)
+apple(苹果)
+strawberry(草莓)
+potato(土豆)
+carrot(胡萝卜)
+tomato(番茄)
+pepper(胡椒)
+coffee(咖啡)
+tea(茶)
+milk(牛奶)
+juice(果汁)"""),
+('Food3', """bread(面包)
+butter(黄油)
+cereal(谷物)
+egg(鸡蛋)
+fruit(水果)
+honey(蜂蜜)
+jam(果酱)
+toast(烤面包)
+yoghurt(酸奶)"""),
+('Weather', """Weather 天气
+raining (下雨)
+sunny (晴天的)
+windy (刮风的)
+cloudy (多云的)
+snowing (下雪)
+hot (热的)
+cold (冷的)
+warm (暖和的)"""),
+('Animals', """Animal 动物        
+horse (马)
+bear (熊)
+dog (够)
+cat (猫)
+rabbit (兔子)
+snake (蛇)
+tiger (老虎)
+sheep (羊)
+bird (鸟)
+elephant (象)
+gorilla (大猩猩)
+cow (牛)"""),
+('Adjectives', """Adjectives 形容词
+beautiful (好看的)
+ugly (丑的)
+interesting (有趣的)
+boring (无聊的)
+clean (干净的)
+dirty (脏的)
+clever (聪明的)
+stupid (愚蠢的)
+dangerous (危险的)
+safe (安全的的)
+lovely (很好的)
+horrible (糟糕的)"""),
+('Transportation', """Transportation 输运
+bike (自行车)
+boat (船)
+bus (公共汽车)
+car (车)
+underground train (地铁)
+ferry (渡船)
+helicopter (子升级)
+taxi (出租车)
+train (火车)
+motorbike (摩托车)
+plane (飞机)"""),
+('Geography', """Geography 地理          
+mountain (山)
+beach (海滩)
+river (河)
+sea (海洋)
+field (田野)
+lake (湖)
+farm (农场)
+forest (森林)"""))]
+        MT3 = [
+        (('Present simple', '''Present Simple 现在时
+
+I/you/we/they eat
+he/she/it eats
+*如果个单词的最后的字母是s,x,ch,sh,o加es
+I/you/we/they go
+he/she/it goes
+*如果个单词的最后的字母是辅音加y去y加ies
+I/you/we/they study
+he/she/it studies
+
+否定句
+不要改变否定句中的动词。在动词前加“don't”或“doesn't”
+I don't eat
+He doesn't eat
+You don't study
+She doesn't study
+
+问句
+不要改变问句中的动词。在动词前加“do”或“does”
+Do you eat?
+Does he study?
+*否定的第三人称动词没有s,但是don't变成doesn't'''),
+('Like Doing', '''Like Doing
+
+*动词 ing 必须用在下面的每个动词之后
+love(爱), like(喜欢), don't like(不喜欢), hate(讨厌)
+
+I like eating
+She likes sleeping
+
+You don't like writing
+He doesn't like running'''),
+('Present Continuous', '''Present Continuous 现在进行时
+
+be doing
+
+I am eating
+You are going
+She is sleeping
+*总是需要be动词，还有动词加ing。没有这些所有部分的句子是不对的'''),
+('Verbs of Perception', """Verbs of Perception 感官动词
+
+有一些有关感官的动词。他们常常是感知的。这些动词不要用'ing'
+
+It looks good (我觉得)看起来很好
+It sounds bad (我觉得)听起来不好
+The food smells delicious (我觉得)食物闻起来好吃
+The food tastes bad (我觉得)
+The blanket feels nice (我觉得)"""),
+('Present Simple vs. Present Continuous', """Present Simple vs. Present Continuous
+
+现在时 - 习惯
+I always go to school
+I watch films every Friday
+
+现在进行时 - 现在做
+I am eating
+He is sleeping"""),
+('Count/Uncountable', '''Countable and Uncountable 可数和不可数
+
+如果一个名词是可数的，你可以用数字来表示多少。
+one cat
+two books
+ten people
+
+如果一个名词是不可数的，你必须使用像'一些’, ‘很多’, ‘一点’，等等
+a cup of water
+a lot of sugar
+some money'''),
+('Too Many/Too Much', """Too Much / Too Many
+
+Too much 不可数的东西
+There is too much water in the cup
+这个杯子有太多的水
+
+Too many 可数的东西
+I have too many things to do
+我有太多的事要做
+
+Not enough 不够的东西
+There is not enough cake for everyone"""),
+('Be动词 past tense', '''Past Simple Be be动词的过去时
+
+肯定句
+I was...
+You/we/they were...
+he/she/it was...
+
+否定句
+I was not...
+You/we/they were not...
+he/she/it was not...
+
+还有可能用be动词的缩写形式
+I wasn't...
+You/we/they weren't...
+he/she/it wasn't...
+
+问句
+Was I...? 我是不是...？
+Were you/we/they...? 你是不是...？
+Was he/she/it...? 他是不是...？
+
+如果你用be动词，你只可以用形容词，名词，或者动词ing
+I was happy
+You weren't at home
+Was she eating?'''),
+('Regular past tense verbs', '''Regular Past Tense Verbs 有规则的过去时
+
+动词加ed
+help + ed > helped
+最后的字母是e的动词加ed
+move + ed > moved
+最后的字母是y的动词加ed
+study + ed > studied'''),
+('-ed pronunciation', '''-ed的发音
+单词最后的辅音是个清辅音加ed，ed听起来t
+例子：helped，worked
+单词最后的辅音是个浊辅音或者元音加ed，ed听起来d
+例子：moved，tried*
+单词最后的辅音是个t,d加ed，ed听起来ed
+例子：hated，wanted
+
+*去y加ied'''),
+('Quite, Very, Really', """Quite, very, really 很、非常
+
+The house is quite big
+家很大
+The car is very expensive
+车很贵
+The dog is really small
+狗很小
+
+very不能和动词一起用
+I really like it 对的
+I quite like it 对的
+I very like it 不对"""),
+('Irregular past tense verbs', '''Irregular Past Tense Verbs 不规则的过去时
+
+现在时- 过去时
+run   - ran
+come  - came
+give  - gave
+see   - saw
+drink - drank
+find  - found
+get   - got(得到)
+take  - took(拿)
+forget- forgot(忘)
+write - wrote
+go    - went
+fall  - fell(倒)
+know  - knew(知道)
+make  - made
+put   - put(放)
+eat   - ate
+do    - did'''),
+('Double Genitive', """Double genitive 是...之一
+
+X of Y
+
+I am her friend
+我是她的朋友
+I am a friend of hers
+我是她的朋友之一"""),
+('Past tense questions', '''Past Tense Questions 过去时的问句
+
+一般疑问句 Did ...?
+Did you eat lunch?
+
+wh-单词的问句 wh-单词 + did + ...?
+Who did you see?
+Where did you go?
+What did you eat?''')),
+(('Hobbies', """hobby (爱好)
+sleep (睡觉)
+do homework (做作业)
+play football (踢足球)
+study (学习)
+read (看书)
+dance (跳舞)
+tidy up (把...弄干净)
+sing (唱歌)
+play an instrument (弹乐器)
+play a game (玩游戏)
+collect something (收藏某物)
+cook (做饭)
+take photos (拍照)
+write (写)
+watch TV (看电视)"""),
+('Shops', """shop (商店)
+newsagent's (报刊店)
+clothes shop (衣服店)
+supermarket (超市)
+chemist's (药店)
+shoe shop (鞋店)
+sports shop (体育用品店)
+bookshop (书店)
+department store (百货商店)"""),
+('Clothes', """belt (皮带)
+dress (裙子)
+jumper (毛衣)
+shoes (鞋子)
+trainers (运动鞋)
+boots (靴子)
+jacket (夹克)
+shirt (衬衫)
+shorts (短裤)
+trousers (裤子)"""),
+('Food', """egg (鸡蛋)
+cheese (奶酪)
+coffee (咖啡)
+milk (牛奶)
+bread (面包)
+cereal (谷物)
+juice (果汁)
+watermelon (西瓜)
+avocado (牛油果)
+carrot (胡萝卜)
+cake (蛋糕)
+pepper (椒)
+yogurt (酸奶)
+omelette (煎蛋)
+tea (茶)
+salad (沙拉)
+menu (菜单)
+starter (开胃菜)
+special (拿手菜)
+side dish (配菜)
+dessert (甜点)
+drink (饮料)
+grilled (烤的)
+roasted (烤的)
+boiled (煮的)
+fried (炒的)"""),
+('Family', """daughter (女儿)
+son (儿子)
+brother (兄弟)
+older brother (哥哥)
+younger brother (弟弟)
+sister (姐妹)
+older sister (姐姐)
+younger sister (妹妹)
+father (爸爸)
+mother (妈妈)
+parents (父母)
+child/children (孩子／孩子们)
+wife (妻子)
+husband (丈夫)
+grandmother (奶奶)
+grandfather (爷爷)
+aunt (阿姨)
+uncle (叔叔)
+cousin (表亲)"""),
+('Feelings', """upset (失落的)
+angry (生气的)
+surprised (惊诧的)
+confused (迷惑的)
+proud (骄傲的)
+relieved (松了口气的)
+worried (担心的)
+scared (害怕的)"""),
+('Rooms & Furniture', """kitchen (厨房)
+bedroom (卧室)
+bathroom (卫生间)
+living room (客厅)
+dining room (餐厅)
+hallway (走廊)
+garden (花园)
+armchair (扶手椅)
+carpet (地毯)
+cooker (炉子)
+curtains (窗帘)
+desk (课桌)
+lamp (灯)
+mirror (镜子)
+shelves (架子)
+shower (淋浴)
+sofa (沙发)
+toilet (厕所)
+wardrobe (衣柜)"""),
+('-ed adjectives', """-ed Adjectives
+
+一些形容词能有两个形。如果有'ed',有暂时的意思。如果有'ing'，有永久的意思
+I am bored (我现在很无聊)
+I am boring (我是一个无聊的人)
+
+annoyed/ing (讨厌的)
+relaxed/ing (轻松的)
+bored/ing (无聊的)
+interested/ing (有趣的)
+amazed/ing (震惊的)"""),
+('Past Time expressions', """yesterday (昨天)
+yesterday morning (昨天早上)
+last night (昨天晚上)
+last week (上周)
+last January (上一月)
+Two hours ago (两个小时以前)
+...ago (...以前)"""),
+('Personality', """intelligent (聪明的)
+cheerful (高兴的)
+jealous (羡慕的)
+helpful (有用的)
+confident (自信的)
+generous (慷慨的)
+easy-going (随和的)
+funny (搞笑的)"""))]
+        MT4 = [
+(("""Have to/Don't have to""", """Have to/Don't have to 必须/必须不
+
+I/you/we/they + have to...
+I/you/we/they + don't have to...
+he/she/it + has to...
+he/she/it + doesn't have to...
+
+I have to sleep
+我必须睡觉
+I don't have to sleep
+我不用睡觉
+He has to go
+他必须去
+He doesn't have to go
+他不用去"""),
+("""Should/shouldn't""", """Should/shouldn't 应该/不应该
+
+I should go
+我应该去
+You should do your homework
+你应该做作业
+He shouldn't eat rice
+他不应该吃饭"""),
+("""Mustn't vs Don't have to""", """Must/Mustn't 必须/必须不
+
+I have to sleep
+我必须睡觉
+I don't have to sleep
+我不用睡觉
+He has to go
+他必须去
+He doesn't have to go
+他不用去"""),
+("""Past Continuous""", """Past continuous 过去进行时
+
+I/he/she/it + was doing
+you/we/they + were doing
+
+I/he/she/it + wasn't doing
+you/we/they + weren't doing
+
+Was I/he/she/it + doing?
+Were you/we/they doing?
+
+I was sleeping
+I wasn't sleeping
+
+You were eating
+You weren't eating"""),
+("""Past Continuous vs Past Simple""", """Past continuous[PC] vs Past Simple[PS]
+
+[PC] 过去进行时
+It was raining
+[PS] 过去时
+I ate breakfast
+
+I ate breakast while it was raining
+下雨的时候我吃了饭"""),
+("""When and While""", """When and While 的时候
+
+Use these words when two things happen at the same time.
+
+- 如果第一个动词有'-ing'，用'when'
+I was eating breakfast when it started raining
+我吃早饭的时候开始下雨了
+
+- 如果第一个动词没有'-ing'，用'while'
+I ate breakast while it was raining
+下雨的时候我吃了早饭"""),
+("""Comparatives""", """Comparatives 比较
+
+X is more ADJ than Y
+X比Y形容词
+
+The cat is smaller than the dog
+猫比狗小
+I am taller than you
+我比你高
+
+如果形容词有一个或者两个音节，在形容词加'-er'
+tall - taller
+happy - happier (去y加ier)
+如果形容词有三个或更多音节，在形容词面前放'more'
+beautiful - more beautiful
+interesting - more interesting"""),
+("""Superlatives""", """Superlatives 最高级
+
+X is the most ADJ 名词
+X是最形容词的名词
+
+The cat is the happiest animal
+猫是最开心的动物
+You are the smartest person
+你是最聪明的人
+
+如果形容词有一个或者两个音节，在形容词加'-est'
+tall - tallest
+happy - happiest (去y加iest)
+如果形容词有三个或更多音节，在形容词面前放'most'
+beautiful - most beautiful
+interesting - most interesting"""),
+("""Can/Can't + ability""", """Can/Can't + ability 能/不能
+
+谁 + 能 + 动词
+
+I can run fast
+我能跑得快
+I can't run fast
+我不能跑得快
+Can you run fast?
+你能不能跑得快？"""),
+("""Be going to""", """Be going to
+
+如果'be going to'和未来时间用在同一个句子中，'be going to do'和'will do'是同一个意思
+
+be going to + 动词
+
+He's going to work at a company
+他会在公司里工作
+Are you going to sleep later?
+你会不会等下睡觉？"""),
+("""Present continuous + arrangement""", """Present continuous + arrangement
+
+如果'be going to'和未来时间用在同一个句子中，'be going to do'和'will do'是同一个意思
+
+be going to + 活动
+
+I'm going to school tomorrow
+我明天会去学校
+I'm not going to school tomorrow
+我明天不会去学校"""),
+("""Adverbs""", """Adverbs 副词
+
+用形容词来描述一个名词，但是用副词来描述一个动词
+
+形容词+ly
+easy - easily (去y加ily)
+quick - quickly
+bad - badly
+
+不规则的副词
+fast - fast
+good - well
+
+I am fast
+我很快
+I run fast
+我跑得快
+
+He cooks good food
+他做好的饭
+He cooks food well
+他做饭做得好"""),
+("""Will/won't""", """Will/won't 将来时
+
+如果你想要描述将来时的动词，用‘will’
+
+I will eat food
+我会吃饭
+He will go to school
+他会去学校
+
+I won't eat food
+我不会吃饭
+He won't go to school
+他不会去学校"""),
+("""First conditional""", """First conditional 如果
+
+如果X，就会Y
+If you sleep, you will not be tired
+如果你睡觉，你就不会累了
+
+或者：就会Y，如果X
+You will not be tired if you sleep
+你就不会累了，如果你睡觉"""),
+("""When/As soon as""", """When/As soon as 的时候
+
+When we have class, we must pay attention
+我们上课的时候，我们必须注意
+I will tell you as soon as I remember
+我一记得的时候就告诉你"""),
+("""Present perfect""", """Present perfect 过了
+
+用这个语法是说你过去做了某事，但不是过去的某个特定时间
+
+I have eaten
+我吃过了
+He hasn't eaten
+他还没吃过
+Have you seen this film?
+你看过这部电影了吗?
+
+有了这种语法，动词就有了特殊的形式
+do - done
+go - gone
+be - been
+see - seen
+take - taken
+eat - eaten
+write - written
+meet - met
+speak - spoken
+fly - flown
+win - won
+swim - swum"""),
+("""Ever/Never""", """Ever/Never
+
+ever - 在过去的任何时候，你是否这样做过
+Have you ever been to Spain?
+你以前去过西班牙吗？
+Have you been to Spain?
+你去过西班牙吗？
+
+never - 过去你从来没有这样做过
+I haven't eaten
+他没吃过
+I have never eaten
+我从来没有吃过"""),
+("""Present perfect vs Past Simple""", """Present perfect[PP] vs Past Simple[PS]
+
+[PP] - 不具体的过去时的时候
+[PS] - 具体的过去时的时候
+
+[PP] - I have eaten
+[PS] - I ate at 6pm""")),
+(("""Gadgets""", """camera (照相机)
+computer (电脑)
+laptop (笔记本电脑)
+e-reader (电子书)
+tablet (平板电脑)
+television (电视)
+headphones (耳机)
+coffee machine (咖啡机)
+remote control (遥控)
+satnav (卫星导航)
+docking station (扩展坞)
+calculator (计算器)
+games console (游戏机)
+MP3 player (MP3播放器)
+torch (火炬)
+hair dryer (电吹风)"""),
+("""Housework""", """vacuum the floor (用吸尘器清理地板)
+tidy up (把...弄干净)
+do the ironing (做熨烫)
+do the shopping (负责购物)
+set/clear the table (摆放/清桌子)
+do the washing-up (洗碗)
+make the beds (铺床)
+do the cooking (做饭)
+do the washing (做清洗)
+load/empty the dishwasher (装入/清空洗碗机)"""),
+("""Sports""", """basketball (篮球)
+horse racing (赛马)
+mountaineering (登山)
+athletics (运动)
+swimming (游泳)
+tennis (网球)
+ball (球)
+race (竞赛)
+track (田径)
+rope (绳索)
+net (网)
+match (比赛)
+rider (骑士)
+sailing (航行)
+diving (潜水)
+golf (高尔夫)
+gymnastics (体操)
+rock-climbing (攀岩)
+rugby (橄榄球)
+snowboarding (单板滑雪)
+skiing (滑雪)
+volleyball (排球)
+windsurfing (风帆冲浪)"""),
+("""Adverbs of Sequence""", """at first (首先)
+then (然后)
+after (后来)
+finally (终于)"""),
+("""Geography""", """ocean (海洋)
+hill (山丘)
+mountain (山)
+jungle (丛林)
+river (河)
+desert (沙漠)
+lake (湖)
+beach (海滩)
+island (岛)
+forest (森林)"""),
+("""Weather""", """freezing (冷冻)
+sunny (晴朗)
+rainy (多余的)
+humid (潮湿)
+windy (刮风)
+wet (湿的)
+cloudy (多云)
+dry (干的)
+warm (暖和)
+foggy (有雾)
+cold (冷)
+hot (热)"""),
+("""Places in a town""", """concert hall (音乐厅)
+car park (停车场)
+shopping mall (商场)
+bus station (公共汽车站)
+police station (警察局)
+post office (邮局)
+football stadium (购物中心)
+sports centre (体育中心)"""),
+("""Things in a town""", """zebra crossing (斑马线)
+youth club (青年俱乐部)
+speed camera (测速照相机)
+graffiti wall (涂鸦墙)
+cycle lane (自行车道)
+litter bin (垃圾桶)
+billboard (广告牌)
+high street (大街)"""),
+("""Body parts""", """arm (胳膊)
+leg (腿)
+mouth (嘴)
+muscle (肌肉)
+finger (指)
+foot (脚)
+ear (耳朵)
+eye (眼睛)
+toe (脚指)
+hair (头发)
+bone (骨头)
+thumb (拇指)"""),
+("""Transport and Travel""", """minibus (小巴)
+helicopter (直升机)
+tram (电车)
+motorbike (摩托车)
+scooter (小型摩托车)
+underground train (地铁)
+taxi (出租车)
+bus (公共汽车)
+airport (飞机场)"""),
+("""Travel verbs""", """miss (错过)
+fly (飞)
+catch (抓、接)
+take (坐)
+ride (骑)
+drive (开车)"""))]
+        MT5 = [
+        (("""Just, Already, Yet""", """Just, Already, Yet
+
+Just - 刚刚
+I have just gotten home
+我刚到家
+
+Already - 已经
+I have already eaten lunch
+我已经吃过了午饭
+
+Yet - 还没
+I haven't done my homework yet
+我还没做作业"""),
+("""Present Perfect vs Past Simple""", """Present perfect[PP] vs Past Simple[PS]
+
+[PP] - 不具体的过去时的时候
+[PS] - 具体的过去时的时候
+
+[PP] - I have eaten
+[PS] - I ate at 6pm"""),
+("""For and Since""", """For and Since
+
+For + 多久
+I have lived here for two years
+我在这里住了两年
+
+Since + 开始的时候
+I have lived here since 2015
+我从2015年就住在这里"""),
+("""A, An, The""", """A, An, The
+
+a/an - 一个
+如果下一个单词第一个声音是一个元音，用an，但是如果是辅音，用a
+a cat
+an apple
+a university (university第一个声音是一个辅音，所以需要a)
+an hour (hour第一个声音是一个元音，所以需要an)
+
+the - 这个、那个
+这比a/an具体的。你指的是一个特定的名词。
+the cat
+the apple
+
+A cat is sleeping (一只猫在睡觉)
+The cat is sleeping (这只猫在睡觉)
+
+如果您指的是一般名词，不要使用“a/an/the”
+A dog is cute (有一个可爱的狗)
+The dog is cute (这个狗很可爱)
+Dogs are cute (总的来说，狗很可爱)”"""),
+("""Comparatives and Superlatives""", """"Comparatives 比较
+
+X is more ADJ than Y
+X比Y形容词
+
+The cat is smaller than the dog
+猫比狗小
+I am taller than you
+我比你高
+
+如果形容词有一个或者两个音节，在形容词加'-er'
+tall - taller
+happy - happier (去y加ier)
+如果形容词有三个或更多音节，在形容词面前放'more'
+beautiful - more beautiful
+interesting - more interesting
+
+Superlatives 最高级
+
+X is the most ADJ 名词
+X是最形容词的名词
+
+The cat is the happiest animal
+猫是最开心的动物
+You are the smartest person
+你是最聪明的人
+
+如果形容词有一个或者两个音节，在形容词加'-est'
+tall - tallest
+happy - happiest (去y加iest)
+如果形容词有三个或更多音节，在形容词面前放'most'
+beautiful - most beautiful
+interesting - most interesting"""),
+("""As...as""", """As...as
+
+As...as X和Y一样形容词
+I'm as tall as you
+我和你一样高
+
+Not as...as X没有Y那么形容词
+我没有你那么高
+I'm not as tall as you"""),
+("""Making comparisons stronger/weaker""", """Strong and Weak Comparisons
+
+使用这些词使比较更加具体
+
+far/a lot/much 很多
+a little/a bit 一点
+
+I am taller than you
+我比你高
+I am much taller than you
+我比你高很多
+I am a little taller than you
+我比你高一点"""),
+("""Adverbs and comparative adverbs""", """Adverbs and comparative adverbs 副词
+
+用形容词为描述一个名词，但是用副词为描述一个动词
+
+形容词+ly
+easy - easily (去y加ily)
+quick - quickly
+bad - badly
+
+不规则的副词
+fast - fast
+good - well
+
+He cooks good food
+他做好的饭
+He cooks food well
+他做饭做得好
+
+如果要比较两个不同的名词如何做某事，请使用“more更多”
+I run quickly
+我跑得快
+I run more quickly* than you
+我比你跑得更多快
+
+*如果X只有一个音节，你可以在末尾加'er'而不是加'more'
+I run quickly
+我跑得快
+I run quicker than you
+我比你跑得更多快”"""),
+("""Indefinite pronouns""", """Indefinite pronouns不定代词
+
+everything 一切
+something 某物
+nothing 没有什么
+anything 任何事物
+
+everyone 每个人
+someone 某人
+no one 没有人
+anyone 任何人
+
+everywhere 到处
+somewhere 某处
+nowhere 无处
+anywhere 任何地方"""),
+("""All, Some, None, Any of them""", """...of them
+
+用它来指代上述句子
+
+all of them 他们都是
+some of them 其中有一些
+none of them 其中没有一个
+any of them 其中任何一个
+one of them 其中一个
+
+In this sentence, "one of them" means "one of the 5 dogs"
+There are 5 dogs in the room, and one of them is brown
+房间里有5只狗，其中一只是棕色的"""),
+("""Should, Had better, Ought to""", """Should, Had better, Ought to
+
+Should和ought to都表示“应该”，但ought to不用于否定句或疑问句中
+You should/ought to study
+你应该学习
+You shouldn't study
+你不应该学习
+
+Had better比“should/ought to强。 它强调如果你不做某事就会有负面的后果
+You had better do your homework (or you will fail)
+你最好做好功课（否则你会失败）
+You'd better not do that (or you will get hurt)
+你最好不要那样做（否则你会受伤"""),
+("""Present Perfect Continuous""", """Present Perfect Continuous 现在完成进行时
+
+Use this to talk about something you started doing before now and you are still doing
+
+I've been studying math for two years
+我学了两年数学(我仍然是)
+I've been reading this book since 10am
+我从上午 10 点开始读这本书(我仍然是)
+I've been eating rice
+我一直在吃米饭(我仍然是)"""),
+("""Present Perfect vs Present Perfect Continuous""", """Present Perfect[PP] vs Present Perfect Continuous[PPC]
+
+[PP] - I have read this book 我看过了这本书(已经读完了)
+[PPC] - I have been reading this book 我一直在读这本书(还没读完了)"""),
+("""Will, May, Might""", """Will, May, Might 将来时
+
+These three words are used to talk about the future.
+
+Will - 会
+I will go to school
+我会去学校
+I won't go to school
+我不会去学校
+May/might - 可能会
+I may/might go to school
+我可能会去学校
+I may/might not go to school
+我可能不去学校"""),
+("""Unless and If""", """Unless and If ’除非‘和’如果‘
+
+这两个词用于谈论将来可能会发生的事情，但前提是先发生其他事情。
+
+If - 如果
+如果X发生，Y会发生
+If it is raining, I will stay at home
+如果下雨，我会呆在家里
+If it isn't raining, I will go out
+如果不下雨，我就出去
+
+Unless - 除非
+如果X不发生，Y会发生
+Unless it is raining, I will go outside
+除非下雨，否则我会出去""")),
+(("""Personality Adj.""", """caring (关心的)
+friendly (好友的)
+boring (无聊的)
+serious (严重的)
+cheerful (愉快的)
+funny (搞笑的)
+intelligent (聪明的)
+cool (酷)
+confident (自信的)
+easy-going (随和的)"""),
+("""Collocations""", """sign a contract (签合同)
+sign an autograph (签名)
+write a novel (写小说)
+write a song (写一首歌)
+do something (做什么)
+win a prize (赢一个将)
+win a competition (赢得比赛)
+make friends (做朋友)
+make a cake (做个蛋糕)
+miss your family (想念你的家人)
+miss the bus (错过公共汽车)"""),
+("""School subjects""", """science (科学)
+physics (物理)
+biology (生物学)
+chemistry (化学)
+music (音乐)
+art (艺术)
+drama (戏剧科)
+design and technology (设计和技术)
+geography (地理学)
+English (英语)
+PE (体育)
+ICT (信息技术)
+maths (数学)
+history (历史)
+Spanish (西班牙语)"""),
+("""Thinking verbs""", """concentrate on (集中)
+remember (记得)
+think (觉得)
+imagine (想象)
+wonder (想知道)
+believe (相信)
+guess (猜测)
+recognise (认出)
+realise (意识到)
+suppose (以为)"""),
+("""Types of films""", """action (动作)
+animated (动画)
+documentary (纪录片)
+comedy (喜剧)
+horror (恐怖)
+romantic comedy (romcom) (浪漫喜剧)
+science fiction (sci-fi) (科幻)
+thriller (惊悚)"""),
+("""Types of TV programs""", """chat show (访谈节目)
+news (信息)
+drama series (剧集)
+cartoon (卡通片)
+game show (游戏节目)
+reality show (真人秀)
+sitcom (情景喜剧)
+soap opera (肥皂剧)
+sports programme (体育节目)
+talent show (达人秀)"""),
+("""IT terms""", """key in your password (输入您的密码)
+install (安装)
+programme (程序)
+attach a file (附加文件)
+have network coverage (有网络覆盖)
+upload (上传)
+delete (删除)
+open an attachment (打开附件)
+buy an app (购买应用程序)
+activate flight mode (激活飞行模式)
+download (下载)
+error message (错误信息)
+your screen goes blank (你的屏幕变成空白)
+close a file without saving it first (关闭文件而不先保存它)
+programme freezes (程序冻结)
+hard disk crashes (硬盘崩溃)"""),
+("""Giving advice""", """bad/good/practical/useful advice (坏/好/实用/有用的建议)
+advice about sth. (关于某事的建议)
+take/follow [someone's] advice (接受/遵循 [一个人的] 的建议)
+ignore [someones] advice (忽略 [一个人的] 建议)
+advise someone to do sth. (建议一个人 做某事)
+advise against sth. (反对某事)
+advisable (建议的)"""),
+("""Making music""", """release (发布)
+musician (音乐家)
+song (歌曲)
+band (乐队)
+gig (演出)
+record(v.) (记录)
+record(n.) (录音)
+album (专辑)
+radio station (广播电台)
+single (一首歌曲)
+recording studio (录音工作室 )"""),
+("""Instruments""", """drums (鼓)
+bass guitar (低音吉他)
+saxophone (萨克斯)
+piano (钢琴)
+violin (小提琴)
+trumpet (小号)
+keyboard (键盘)
+guitar (吉他)"""),
+("""Environment""", """extinct (灭绝)
+endangered (濒危)
+law (法律)
+waste (浪费)
+litter(v.) (把垃圾扔在地上)
+litter(n.) (地上的垃圾)
+melt (融化)
+flood (洪水)
+smog (烟雾)
+recycling (回收)
+rubbish (垃圾)"""),
+("""Energy""", """reuse (再利用)
+throw away (抛弃)
+recycle (回收)
+waste (浪费)
+charge (充电)
+disconnect (断开连接)
+save (节省)
+leave on standby (待命)"""))]
+        MT6 = [
+        (("""Future forms""", """Future tense forms
+
+•If there is a future time in the sentence, or the future is obvious, you can use tenses that are not the future tense.
+
+Present simple - The film [opens] in the UK on Friday
+Future simple - History [will be made] later today
+Going to verb - I'm [going to write] a book next year
+Present continuous - I [am spending] three days in China next month"""),
+("""Question tags""", """Question tags
+
+•These are used to make sure what you just said is correct
+
+It will rain (我告诉你什么会发生)
+It will rain later, right? - (我觉得我说得对但是我想要证实)
+
+She sings well, doesn't she?
+You're going to the store, aren't you?
+It's going to snow tomorrow, isn't it?"""),
+("""Nor / Neither / So""", """Nor / Neither / So
+
+•Use 'nor/neither' to agree with negative sentences
+
+I don't like it.  Neither do I
+我不喜欢那个东西。我也是
+I don't like it.  Nor do I
+我不喜欢那个东西。我也是
+
+•Use 'so' to agree with positive sentences
+
+I like it.  So do I
+我喜欢那个东西。我也是"""),
+("""Past Continuous vs Past Simple""", """Past continuous[PC] vs Past Simple[PS]
+
+[PC] 有时长
+It was raining
+[PS] 发生得快
+I ate breakfast
+
+I ate breakast while it was raining
+下雨的时候我吃了饭"""),
+("""Used to""", """Used to
+
+•Use this to talk about something you did a lot in the past but now you don't do it
+
+I studied math (I did it and now I don't)
+I used to study math (I did it often and now I don't)"""),
+("""Second conditional""", """Would
+
+•Use this to talk about something that is not real
+
+Real: I have no money. I will die.
+Fake: If I had a lot of money, I would not die
+
+•The real sentence is what is true. The fake sentence is what is not true; it is hypothetical(虚拟的).
+
+"If I had a lot of money" is not real; you are pretending(假装) it is real. And when you pretend something 
+is real in the past, you can say what will be different in the present(现在).
+
+•For fake sentences, you must use [if + past simple][would + present event]
+[If + I had a lot of money], [I would + not die]
+
+~~~I wish~~~
+[I wish + past simple] is used when you say you want the fake to be real
+
+I wish + I had money (I don't really have money, but I want to) """),
+("""Passive simple""", """Passive 被
+
+•Use the passive when:
+what happens is more important than who does it
+or you don't know who does it
+
+The man opens the door
+男人打开门
+
+The door is opened (by the man)
+门被（男人）打开
+In this sentence, the most important thing is that the door is opened, not who opens it
+
+动词  -> be动词 + 过去分词
+open -> is opened
+eat  -> is eaten"""),
+("""Passive continous and perfect""", """Passive continous and perfect
+
+--Passive Continuous--
+•Used in the same way as the passive simple, but when something is happening now
+
+Books are being written every day
+人们每天都写书，但谁在写并不重要
+
+--Passive Perfect--
+•Used in the same way as the passive simple, but when something happens for a long time in the past and the time isn't important
+
+Many books have been written
+过去人们写过很多书，但谁写的并不重要"""),
+("""Past perfect simple""", """Past perfect simple
+
+•Used to talk about the past in the past
+•The thing that happens first uses 'had done', and the thing that happens after uses the simple past
+
+She had been there for two weeks when she died
+在她死之前，她在那里呆了两个星期
+
+I had just returned home when it started raining
+我刚回家就开始下雨了
+
+I had already done my homework when the phone rang
+电话铃响时，我已经做完作业了"""),
+("""Past perfect continuous""", """Past perfect continuous
+
+•It is the same as the present continuous, but in the past
+
+I [had been sleeping] for two hours when my phone rang
+我已经睡了两个小时了，这时电话铃响了
+
+He [had already been studying] for three hours when I arrived
+我到达时，他已经学习了三个小时"""),
+("""Reported statements""", """Reported statements
+
+•Used to say what someone else said
+
+•Many times we change the verb to the past tense
+•Many times we use 'tell + 宾语' and 'say' with reported speech
+
+• It is always in the past tense.  You must change the tenses like this:
+
+present simple > past simple
+He told me he wanted to eat noodles
+
+present continuous > past continuous
+He said he was eating noodles
+
+past simple > past perfect
+He said he has already eaten noodles
+
+present perfect > past perfect
+He said he has already eaten noodles
+
+be going to > was/were going to
+He told me he was going to eat noodles
+
+can > could
+He asked me if I could eat noodles
+
+will > would
+He asked me if I would eat noodles when I returned home"""),
+("""Object + infinitive""", """Object + infinitive
+
+•Some verbs (ask/want/tell) have a 宾语 and then a 不定式
+
+...      动词  宾语      不定式
+My dad [asked][me][to cook dinner]
+
+I      [told][her][to sit down]
+
+Tom   [wanted][me][to speak]"""),
+("""Be allowed to / let""", """Be allowed to / let
+
+•Used to talk about what other people say you can(可以)/can't(不可以) do
+
+I'm [not allowed to] watch that film
+我[不可以]看那部电影
+有'be allowed to' 的句子不需要说谁不让
+
+My mom [let's] me eat candy
+我的妈妈[让]我吃糖
+有'let'的句子需要说谁让"""),
+("""Third conditional""", """Third conditional
+
+•Used to talk about hypothetical(虚拟的) things in the past
+
+had+过去分词...  would have+过去分词
+If I had studied, I would have passed the exam
+如果我学习了，我就会通过考试
+
+If we had run, we wouldn't have missed the train
+如果我们跑了，就不会误了火车""")),
+(("""Future time expressions""", """the [week] after next (两周后)
+before too long (不久)
+in [two weeks'] time (两周后)
+next [weekend] (下周末)
+the day after tomorrow (后天)
+later today (今天晚些时候)
+[four years] from now (四年后)
+in the near future (在不久的将来)"""),
+("""Arranging a party""", """send out (发出)
+organise (组织)
+get (获取)
+hire (雇用)
+draw up (起草)
+decorate (装饰)
+permission (许可)
+room (房间)
+DJ (流行音乐播音员)
+food and drinks (食品和饮料)
+invitations (邀请)
+guest list (客人名单)"""),
+("""Directions and movement""", """towards (向)
+away from (远离)
+around (周围)
+backwards (向后)
+forwards (向前)
+up and down (上下)"""),
+("""Science""", """cure (治疗)
+discover (发现)
+experiment (实验)
+invent (发明)
+laboratory (实验室)
+machine (机器)
+do research (研究)
+scientist (科学家)"""),
+("""Jobs""", """earn (赚)
+work long hours (长时间工作)
+challenging (困难的)
+get paid holidays (获得带薪假期)
+give your notice (给你的通知)
+promote (提升)
+on-the-job training (在职培训)
+start a career (创业)
+pay (工资)
+successful (成功的)"""),
+("""Work as/in/for""", """work as + job
+work for + company name
+work in + field(专业)"""),
+("""Time linkers""", """when (当...的时候)
+as soon as (一...就...)
+then (那时，然后)
+until (直到)
+while (当...的时候)"""),
+("""Illness""", """take medicine (吃药)
+in the hospital (在医院)
+medication (药)
+problem (问题)
+feel + good/bad (感觉舒服/不好)
+appointment (约会)
+specialist (专家)
+exercise (运动)
+sick (病的)
+operation (手术)"""),
+("""Fun""", """fun ()
+hilarious (极其滑稽的)
+laugh at (嘲笑)
+get the joke (理解了笑话)
+play a joke (开玩笑)
+tell a joke (讲笑话)
+make fun of (取消)
+funny (搞笑)
+silly (愚蠢的)"""),
+("""Verbs with Object + Infinitive""", """persuade (劝说)
+encourage (鼓励)
+warn (警告)
+invite (邀请)
+remind (提醒)
+allow (让)
+want (想要)
+expect (期待)"""),
+("""Discipline""", """do what you're told (做我告诉你的)
+behave well (表现好)
+get punished (被惩罚)
+break the rules (违反规则)
+get into trouble (有麻烦了)
+get told off (被指责)"""),
+("""Consequences and Reasons""", """because (因为)
+That explains why... (这解释了...的原因)
+That's the reason... (这是...的原因)
+That's why... (这是为什么...)
+It's because of... (这是因为...)"""))]
+        ht1 = [
+            ('Lesson 1', """hi/hello (你好)
+goodbye (再见)
+mommy (妈妈)
+daddy (爸爸)""", """I love you (我爱你)"""),('Lesson 2', """one (1)
+two (2)
+three (3)
+four (4)
+five (5)""", """What's your name? (你叫什么名字？)
+I'm... (我是...)
+Thank you (谢谢)
+My name is... (我叫...)
+Let's sing along (我们一起唱歌吧)
+Let's sing the song (我们唱歌吧)
+How old are you? (你是多少岁？)"""),('Lesson 3', """fruit (水果)
+apple (苹果)
+pear (梨子)
+peach/es (桃子)
+banana (香蕉)
+watermelon (西瓜)
+letter (字母)""","""I like... (我喜欢...)"""),('Lesson 4', """animal (动物)
+bear (熊)
+dog (够)
+cat (猫)
+mouse (鼠)
+rabbit (兔子)
+jump (跳)""", """I'm a... (我是一个...)"""),('Lesson 5', """ear (耳朵)
+eye (眼睛)
+mouth (嘴)
+nose (鼻子)
+head (头)
+face (脸)""", """Touch your... (摸摸你的...)
+Wash your... (洗你的...)"""),('Lesson 6', """play (玩)
+hop (跳)
+and (和)
+go (去)
+stand up (站起来)
+sit down (坐下)
+follow me (跟我)
+Clap your hands (拍拍你的手)""", """Let's... (我们都...吧)"""),('Lesson 7', """food (食物)
+honey (蜂蜜)
+fish (鱼)
+meat (肉)
+ice cream (冰淇淋)
+jelly (果冻)""", """I want... (我想要...)
+Here you are (给你)"""),('Lesson 8', """color (颜色)
+red (红色)
+yellow (黄色)
+blue (蓝色)
+green (绿色)
+kite (风筝)
+light (灯)
+go (去)
+stop (停)""", """It's... (它是...)""")]
+        ht2 = [
+            ('Lesson 1', """get up (起床)
+good morning (早上好)
+morning (早上)
+good night (晚安)
+night (晚上)""", """Let's go to bed (我们坐床吧)"""),('Lesson 2', """wow (哇)
+pizza (比萨)
+orange (橙子)
+honey (蜂蜜)
+happy birthday (生日快乐)
+hamburger (汉堡包)
+pie (派)
+cake (蛋糕)""", """I like... (我喜欢...)
+I want... (我想要...)"""),('Lesson 3', """house (家)
+rug (地毯)
+pillow (枕头)
+bed (床)
+quilt (被子)
+table (桌子)
+sofa (沙发)""", """What's this? (这是什么？)
+It's a... (它是一个...)"""),('Lesson 4', """clothes (衣服)
+t-shirt (T恤衫)
+shoe (鞋子)
+sock (袜子)
+hat (帽子)
+pants (裤子)
+put on... (穿.上..)
+take off... (脱掉...)
+my (我的)
+your (你的)""", """It's my... (它是我的...)"""),('Lesson 5', """number (数字)
+one (1)
+two (2)
+three (3)
+four (4)
+five (5)
+six (6)
+seven (7)
+eight (8)
+nine (9)
+ten (10)
+umbrella (伞)""", """how many...? (多少...)"""),('Lesson 6', """walk (走)
+jump (跳)
+stop (停)
+hands up (举起手)
+hands down (放下手)
+run (跑步)""", """I can... (我能...)"""),('Lesson 7', """zoo (动物园)
+tiger (老虎)
+lion (狮子)
+elephant (大象)
+zebra (斑马)
+wolf (狼)""", """What's that? (那是什么？)
+It's a... (它是一个...)"""),('Lesson 8', """feeling (感觉)
+cold (冷的)
+hot (热的)
+hungry (饿的)
+full (饱的)
+thirsty (渴的)""")]
+        ht3 = [
+            ('Lesson 1', """Thank you (谢谢)
+good morning (早上好)
+good afternoon (下午好)
+good evening (晚上好)
+good night (晚安)""", """How are you? (你好吗？)
+I'm fine (我很好)"""),
+('Lesson 2', """animal (动物)
+bird (鸟)
+frog (青蛙)
+snail (蜗牛)
+monkey (猴子)
+ant (蚂蚁)
+snake (蛇)""", """What can you see? (你能看什么？)
+I can see... (我能看...)"""),('Lesson 3', """food (食物)
+bread (面包)
+chicken (肌肉)
+chocolate (巧克力)
+egg (鸡蛋)
+candy (糖果)
+noodles (面条)""", """What do you want? (你想要什么？)
+I want some... (我想要一些...)"""),('Lesson 4', """school (学校)
+school supplies (学校用品)
+pen (铅笔)
+book (书)
+eraser (橡皮)
+bag (袋子、书包)
+ink (墨水)
+ruler (尺子)
+tell me (告诉我)""", """I have... (我有...)
+I have a new... (我有一个新的...)"""),('Lesson 5', """color (颜色)
+pink (粉色)
+purple (紫色)
+orange (橙色)
+black (黑色)
+white (白色)""", """What color is it? (这是什么颜色？)
+It's... (它是...)"""),('Lesson 6', """family (家人)
+mommy (妈妈)
+daddy (爸爸)
+brother (哥哥、弟弟)
+sister (姐姐、妹妹)
+uncle (叔叔)
+aunt (阿姨)
+grandpa (爷爷)
+grandma (奶奶)""", """This is my... (这是我的...)
+I love... (我爱...)"""),('Lesson 7', """number (数字)
+eleven (11)
+twelve (12)
+thirteen (13)
+fourteen (14)
+fifteen (15)"""),('Lesson 8', """clothes (衣服)
+sweater (毛衣)
+dress (裙子)
+coat (外套)
+glove (手套)
+jacket (夹克)""", """I'm wearing... (我穿着)""")]
+        ht4 = [
+            ('Lesson 1', """wow (哇)
+toy (玩具)""", """I'm sorry (对不起)
+That's ok (没关系)"""),
+('Lesson 2', """yoyo (悠悠球)
+ball (球)
+balloon (气球)
+doll (洋娃娃)
+blocks (积木)
+cards (纸牌)""", """I want... (我想要...)"""),
+('Lesson 3', """body (身体)
+shoulder (肩膀)
+hand (手)
+foot/feet (脚 (单数/复数))
+toe (脚指)
+knee (膝盖)
+arm (胳膊)""", """Touch your shoulders (摸摸你的肩膀)
+Touch your knees (摸摸你的膝盖)
+Clap your hands (拍拍你的手)
+Stamp your feet (踩踩你的脚)"""),
+('Lesson 4', """farm (农场)
+chick (小鸡)
+duck (鸭)
+goat (山羊)
+horse (马)
+pig (猪)
+cow (牛)
+girl (姑娘)
+game (游戏)""", """These are... (这些是...)"""),
+('Lesson 5', """transportation (交通工具)
+car (车)
+bus (公共汽车)
+bicycle (自行车)
+taxi (出租车)
+helicopter (直升机)""", """What's this? (这是什么？)
+Is this a...? (它是一个...吗？)
+It's a... (它是一个...)"""),
+('Lesson 6', """drinks (饮料)
+water (水)
+milk (牛奶)
+cola (可乐)
+beer (啤酒)
+tea (茶)
+coffee (咖啡)""", """I'd like some... (我想要一些...)"""),
+('Lesson 7', """kitchen (厨房)
+bowl (碗)
+spoon (勺子)
+plate (盘子)
+knife (刀子)
+chopsticks (筷子)
+kick (踢)""", """Pass me... (给我...)"""),
+('Lesson 8', """number (数字)
+sixteen (16)
+seventeen (17)
+eighteen (18)
+nineteen (19)
+twenty (20)
+lamb (小羊)
+lake (湖)""", """How many...are there? (有多少...？)
+There are... (有...)""")]
+        ht5 = [
+        ('Lesson 1', """welcome (欢迎光临)
+home (家)
+hello (你好)
+goodbye (再见)
+thank you (谢谢)""", """Please come in (请进来)
+See you tomorrow (明天见)"""),
+('Lesson 2', """fruit (水果)
+salad (沙拉)
+strawberry (草莓)
+grape (葡萄)
+pineapple (菠萝)
+banana (香蕉)
+mango (芒果)
+lemon (柠檬)
+kiwi (猕猴桃)
+cherry (樱桃)
+some (一些)""", """Let's make...  (我们做...吧)"""),
+('Lesson 3', """nod (点头)
+shake (瑶)
+touch (摸摸)
+turn around (转身)
+open (开)
+close (关)""", """nod your head (点点你的头)
+shake your hands (拍拍你的手)
+touch the ground (摸摸地板)
+open your eyes (睁开你的眼睛)
+brush your teeth (刷你的牙)
+wash your face (洗你的脸)"""),
+('Lesson 4', """job (工作)
+policeman (警察)
+farmer (农民)
+cook (厨师)
+doctor (医生)
+driver (司机)
+teacher (老师)
+nurse (护士)
+fireman (消防队员)""", """I'm a... (我是一个...)
+What do you do? (你的工作是什么？)"""),
+('Lesson 5', """fat (胖的)
+thin (瘦的)
+tall (高的)
+short (矮的)
+big (大的)
+small (小的)
+quick (快的)
+slow (慢的)
+question (问题)
+queen (女王)"""),
+('Lesson 6', """weather (天气)
+windy (刮风的)
+cloudy (多云的)
+sunny (晴天的)
+rainy (多雨的)
+snowy (多雪的)
+foggy (有雾的)""", """It's... today (今天很...)
+What's the weather like today? (今天的天气怎么样？)"""),
+('Lesson 7', """Christmas (圣诞节)
+Merry Christmas (圣诞节快乐)
+gift (礼物)
+Santa Claus (圣诞老人)
+sleigh (雪橇)
+Christmas tree (圣诞树)
+bell (钟)""", """Here's the gift for... (这是给...的礼物)"""),
+('Lesson 8', """feeling (感觉)
+happy (快乐的)
+sad (难过的)
+angry (生气的)
+scared (害怕的)
+tired (累的)
+sick (病的)""")]
+        ht6 = [
+('Lesson 1', """hi/hello (你好)
+here (这里)
+not here (不在这里)
+late (迟到的)""", """Nice to meet you (很高兴认识你)
+I am... (我是)"""),
+('Lesson 2', """transportation (交通工具)
+motorcycle (摩托车)
+boat (船)
+plane (飞机)
+van (面包车)
+train (火车)
+truck (货车)
+violin (小提琴)
+vest (背心)
+vase (花瓶)""", """Let's go to... (我们去...吧)
+Let's go by... (我们坐...走吧)"""),
+('Lesson 3', """classroom (教室)
+on (在...上面)
+behind (在...后面)
+in (在...里面)
+box (盒子)
+window (窗户)
+wall (墙)
+floor (地板)
+door (门)
+blackboard (黑板)
+point to... (指...)
+look at... (看到...)
+ax (斧头)
+fox (狐狸)""", """I can see... (我能看...)"""),
+('Lesson 4', """time (时候)
+breakfast (早饭)
+lunch (午饭)
+dinner (晚饭)
+time for... (...的时间)""", """What time is it? (现在是什么时候？)
+It's... o'clock (现在...点)"""),
+('Lesson 5', """flavor (口味)
+free (免费的)
+yummy (好吃的)
+sour (酸的)
+sweet (甜的)
+yucky (不好吃的)
+salty (咸的)
+yogurt (酸奶)""", """How is the...? (...怎么样？)
+It's... (它是...)"""),
+('Lesson 6', """place (地方)
+supermarket (超市)
+bookstore (书店)
+hospital (医院)
+school (学校)
+park (公园)
+zoo (动物园)
+zero (0)
+zipper (拉链)""", """Where are you going? (你去哪里？)
+I'm going to... (我在去...)"""),
+('Lesson 7', """season (季节)
+spring (春天)
+summer (夏天)
+fall (秋天)
+winter (冬天)""", """It's... (它是...)"""),
+('Lesson 8', """day (天)
+week (周)
+Sunday (星期天)
+Monday (星期一)
+Tuesday (星期二)
+Wednesday (星期三)
+Thursday (星期四)
+Friday (星期五)
+Saturday (星期六)""", """What day is today? (今天是星期几？)
+It's... today (今天是星期...)""")]
+        GW1 = [
+        ("""Hello""", """blue (蓝色)
+green (绿色)
+orange (橙色)
+pink (粉色)
+purple (紫色)
+red (红色)
+yellow (黄色)
+one (1)
+two (2)
+three (3)
+four (4)
+five (5)
+six (6)
+seven (7)
+eight (8)
+nine (9)
+ten (10)""", """Hello (你好)
+I'm... (我叫...)
+What's your name? (你叫什么名字？)
+Goodbye (再见)
+How old are you? (你今年几岁了？)
+I'm... (我...岁)
+What's your favourite color? (你最喜欢的颜色是什么？)
+My favourite colour's...(我最喜欢的颜色是...)"""),
+("""1. School""", """board (白板、黑板)
+book (书)
+chair (椅子)
+desk (课桌)
+door (门)
+pen (笔)
+pencil (铅笔)
+pencil case (铅笔盒)
+eraser (橡皮)
+window (窗户)
+material (材料)
+wood (木头)
+plastic (塑料)
+metal (金属)
+glass (玻璃)""", """How many...can you see? (你能看多少...？)
+Stand up, please (请站起来)"""),
+("""2. Toys""", """art set (美术套组)
+ball (球)
+bike (自行车)
+camera (照相机)
+computer (电脑)
+computer game (电脑游戏)
+doll (玩具娃娃)
+kite (风筝)
+robot (机器人)
+teddy bear (泰迪熊)
+electric (电动的)""", """What's this? (这是什么？)
+It's a... (它是一个...)"""),
+("""3. Family""", """aunt (阿姨)
+brother (哥哥、弟弟)
+cousin (表亲)
+dad (爸爸)
+grandpa (爷爷)
+grandma (奶奶)
+mum (妈妈)
+sister (姐姐、妹妹)
+uncle (叔叔)
+continent (大陆)
+North America (北美洲)
+South America (南美洲)
+Europe (欧洲)
+Africa (非洲)
+Asia (亚洲)
+Australia (澳大利亚)
+Antarctica (南极洲)""", """Who's this？ (这是谁？)
+Who's that? (那是谁？)"""),
+("""4. At home""", """balcony (阳台)
+bathroom (卫生间)
+bedroom (卧室)
+dining room (餐厅)
+flat (公寓)
+garden (花园)
+hall (走廊)
+house (家)
+kitchen (厨房)
+living room (客厅)
+shape (形式)
+circle (圆圈)
+triangle (三角形)
+square (正方形)""", """Where are you? (你在哪里？)
+I'm in... (我在...)
+Where's...? (...在哪里？)"""),
+("""5. My body""", """arms (胳膊)
+ears (耳朵)
+eyes (眼睛)
+feet (脚)
+head (头)
+hair (头发)
+hands (手)
+legs (腿)
+mouth (嘴)
+nose (鼻子)
+sense (感觉)
+sight (目光)
+hearing (听觉)
+smell (嗅觉)
+taste (味觉)
+touch (摸)""", """I've got... (我有...)
+Have you got...? (你有没有...？)"""),
+("""6. Food""", """apple (苹果)
+banana (香蕉)
+bread (面包)
+cheese (奶酪)
+chicken (鸡肉)
+egg (鸡蛋)
+juice (果汁)
+milk (牛奶)
+orange (橙子)
+water (水)
+animal (动物)
+plant (植物)""", """I like... (我喜欢...)
+Do you like...? (你喜不喜欢...？)"""),
+("""7. Actions""", """climb (爬)
+dance (跳舞)
+draw (画)
+jump (跳)
+paint (画画)
+play football (踢足球)
+ride a bike (骑自行车)
+run (跑步)
+sing (唱歌)
+swim (游泳)""", """I can... (我会...)
+Can you...? (你会不会...)"""),
+("""8. Animals""", """bird (鸟)
+crocodile (鳄鱼)
+elephant (大象)
+giraffe (长颈鹿)
+hippo (河马)
+lion (狮子)
+monkey (猴子)
+snake (蛇)
+spider (蜘蛛)
+zebra (斑马)
+walk (走)
+fly (飞)
+slither (蛇行)""", """...are... (【复数的名词】很【形容词】)
+...have got... (【名词】有...)""")]
+        GW2 = [
+        ("""Hello again!""", """sister (姐姐、妹妹)
+brother (哥哥、弟弟)
+friend (朋友)
+chair (椅子)
+computer (电脑)
+door (门)
+bike (自行车)
+pencil box (铅笔盒)
+camera (照相机)
+brown (棕色)
+pink (粉色)
+blue (蓝色)
+red (红色)
+purple (紫色)
+yellow (黄色)
+surprise (惊喜)
+photography (摄影术)
+drawing (画)
+sculpture (雕塑)
+painting (画画)""", """This is my... (这是我的...)
+Her name is... (她叫...)
+How old is she? (她多少岁？)
+She's... (她...岁)
+How do you spell...? (...怎么拼写？)
+What's this? (这是什么？)
+It's... (它是...)
+Do you like...? (你喜不喜欢...？)"""),
+("""1. Transport""", """transport (运输)
+plane (飞机)
+helicopter (直升机)
+bus (公共汽车)
+car (车)
+lorry (卡车)
+train (火车)
+motorbike (摩托车)
+tractor (拖拉机)
+boat (船)
+robot (机器人)
+on land (在地上)
+on water (在水上)
+in the air (在空气里)""", """I've got... (我有...)
+She's got... (她有...)
+Has she got...? (她有没有...？)
+Yes, she has (是，她有)
+No, she hasn't (不，她没有)
+Be careful (小心)
+Let's go to the park! (我们去公园走吧)
+Can I have a turn? (我可以玩一下吗？)
+Yes, of course (当然)
+This is fun (这是有趣的)"""),
+("""2. Pets""", """pet (宠物)
+woman/women (女人 (单数、复数))
+girl (女孩)
+man/man (男人 (单数、复数))
+boy (男孩)
+baby/babies (宝贝 (单数、复数))
+child/children (孩子 (单数、复数))
+mouse (鼠)
+fish (鱼)
+dog (狗)
+frog (青蛙)
+cat (猫)
+beautiful (漂亮的)
+ugly (丑的)
+happy (快乐的)
+sad (难过的)
+old (老的)
+young (年轻的)
+big (大的)
+small (小的)
+water (水)
+food (食物)
+shelter (遮挡)""", """They are... (他们是...)
+It's a... (它是一个...)
+Can you guess? (你能不能猜一猜？)
+Let me guess (让我猜一猜)
+Is it...? (它是...吗？)
+Are they...? (他们是...吗？)
+What's that? (那是什么？)
+Can we help? (我们能帮你吗？)
+Thank you (谢谢)
+You're welcome (不客气)"""),
+("""3. Clothes""", """clothes (衣服)
+jacket (夹克)
+trousers (裤子)
+socks (袜子)
+skirt (短裙)
+shoes (鞋子)
+dress (裙子)
+t-shirt (T恤衫)
+jeans (牛仔裤)
+shirt (衬衫)
+red (红色)
+green (绿色)
+purple (紫色)
+blue (蓝色)
+cotton (棉花)
+silk (丝绸)
+leather (皮革)
+wool (羊毛)""", """Here's... (这里有...)
+put on... (穿上...)
+What are you wearing? (你穿着什么？)
+Are you wearing...? (你穿着...吗？)"""),
+("""4. Rooms""", """room (房间)
+wardrobe (衣柜)
+phone (电话)
+TV (电视)
+bookcase (书柜)
+mirror (镜子)
+cupboard (柜子)
+lamp (灯)
+table (桌子)
+clock (时种)
+sofa (沙发)
+on (在...上面)
+in (在...里面)
+tidy (整齐)
+lamppost (灯柱)
+bus stop (公共汽车站)
+letterbox (信箱)
+traffic light (红绿灯)""", """The lamp is on the table (灯在桌子上)
+The books are in the bookcase (书在书柜里)
+There's a...in... (在...里面有一个...)
+There are...on... (在...上面有一些...)
+How many...? (多少...？)
+What a mess! (太乱了！)"""),
+("""5. Meals""", """meal (饭)
+potatoes (土豆)
+carrots (胡萝卜)
+rice (米饭)
+peas (豌豆)
+fish (鱼)
+meat (肉)
+susages (香肠)
+beans (豆子)
+toast (烤面包)
+cereal (谷物)
+shopping list (购物单)
+breakfast (早饭)
+lunch (午饭)
+dinner (晚饭)
+chocolate cake (巧克力蛋糕)
+fruit (水果)
+vegetables (蔬菜)
+grains (粮食)
+dairy (乳品)""", """Do you like...for breakfast? (你早餐喜欢吃...吗？)"""),
+("""6. Activities""", """play tennis (打网球)
+play hockey (打冰球)
+play basketball (打篮球)
+rollerskate (轮滑)
+play baseball (打棒球)
+ride a horse (骑马)
+fly a kite (放风筝)
+take photos (拍照)
+racket (球拍)
+stick (曲棍)
+bat (击球)
+ball (球)""", """I can... (我能...)
+I can't... (我不能...)
+I like...ing (我喜欢...)
+That's not fair (那是不公平的)
+Play nicely (好好地玩)"""),
+("""7. In town""", """town (城镇)
+cafe (咖啡店)
+toy shop (玩具店)
+book shop (书店)
+clothes shop (衣服店)
+park (公园)
+cinema (电影馆)
+supermarket (超市)
+street (路)
+school (学校)
+playground (操场)
+behind (在...后面)
+in front of (在...前面)
+between (在...和...中间)
+next to (在...旁边)
+visit (参观)
+ticket (票)
+cross (过)
+closed (关的)
+police station (警察局)
+fire station (消防站)
+hospital (医院)
+sports centre (运动中心)""", """
+Come with me (跟我来)
+...'s in the... (【谁】在...里面)"""),
+("""8. On the farm""", """farm (农场)
+field (田野)
+barn (仓)
+horse (马)
+cow (牛)
+donkey (驴)
+sheep (羊)
+goat (山羊)
+duck (鸭)
+pond (池塘)
+sleeping (睡觉)
+swimming (游泳)
+running (跑步)
+flying (飞)
+eating (吃)
+message (信)
+party (派对)
+plant seeds (种种子)
+turn soil (耕)
+water plants (浇植物)
+harvest plants (收获植物)""", """What's he doing? (他在干吗？)
+He's...ing (他在...)
+It's nice to see you (很高兴见到你)""")]
+        GW3 = [
+        ("""Welcome""", """January (一月)
+February (二月)
+March (三月)
+April (四月)
+May (五月)
+June (六月)
+July (七月)
+August (八月)
+September (九月)
+October (十月)
+November (十一月)
+December (十二月)
+river (河)
+sea (海洋)
+waterfall (瀑布)
+forest (森林)
+mountain (山)""", """What's your name? (你叫什么名字？)
+How old are you? (你是多少岁？)
+What's your favourite colour? (你最喜欢的颜色是什么？)
+Do you like sport? (你喜欢运动吗？)
+Have you got a pet? (你有宠物吗？)
+Can you draw a picture of me? (你可以画一张我的照片吗？)
+When's your birthday? (你的生日是几月几号？)"""),
+("""1. In the garden""", """tree (树)
+leaf (叶子)
+caterpillar (毛毛虫)
+rabbit (兔子)
+butterfly (蝴蝶)
+flower (花)
+grass (草)
+tortoise (乌龟)
+guinea pig (荷兰猪)
+snail (蜗牛)
+my (我的)
+your (你的)
+his (他的)
+her (她的)
+its (它的)
+our (我们的)
+their (他们的)
+big (大的)
+small (小的)
+beautiful (好看的)
+grey (灰色)
+white (白色)
+yellow (黄色)
+orange (橙色)
+black (黑色)
+desert (沙漠)
+rainforest (雨林)
+grassland (草原)
+tundra (苔原)""", """...'s pet is... (【谁的】宠物很【形容词】)
+What's that? (那是什么？)
+It's... (它是...？)
+What are those? (那是什么？)
+They're... (它们是...)"""),
+("""2. At school""", """reception (接待处)
+dining hall (餐厅)
+library (图书馆)
+classroom (教室)
+science room (科学室)
+gym (体育馆)
+lab room (实验室)
+art room (艺术室)
+music room (音乐室)
+playground (操场)
+sports field (运动场)
+recycling bin (回收桶)
+paper (纸)
+can (罐)
+bottle (瓶子)
+cardboard (卡纸)""", """Where are...? (【我们、你、他们】在哪里？)
+...is... (【他、她、它】是【在哪里】)
+...are... (【我们、你、他们】是【在哪里】)
+What is...doing? (【谁】在做什么？)
+What are...doing? (【谁】在做什么？)
+I'm... (我在【做什么】)
+He's... (他在【做什么】)
+We're... (我们在【做什么】)"""),
+("""3. School days""", """Monday (星期一)
+Tuesday (星期二)
+Wednesday (星期三)
+Thursday (星期四)
+Friday (星期五)
+Saturday (星期六)
+Sunday (星期天)
+lesson (课)
+in the morning (在早上)
+in the afternoon (在下午)
+in the evening (在晚上)
+before (之前)
+after (之后)
+koala (考拉)
+fox (狐狸)
+bat (蝙蝠)
+scorpion (蝎子)
+owl (猫头鹰)""", """Have we got...on...? (我们【星期几】有【什么课】吗？)
+Yes, we have (有)
+No, we haven't (没有)
+What...has she got...? (她【什么时候】有【什么课】？)
+She's got... (她【时候】有【一节课】)"""),
+("""4. My day""", """get up (起床)
+get dressed (穿戴)
+have breakfast (吃早饭)
+clean my teeth (刷牙)
+go to school (上课)
+have lunch (吃午饭)
+go home (回家)
+have dinner (吃晚饭)
+have a shower (淋浴)
+go to bed (上床)
+o'clock (点)
+half past... (半)""", """I...at... (我【什么时候】【做什么】)
+What time do you...? (你什么时候...？)
+So do I (我也是)"""),
+("""5. Home time""", """drink juice (喝果汁)
+eat a sandwich (吃三明治)
+do the dishes (洗盘)
+play on the computer (玩电脑)
+read a book (看书)
+watch TV (看电视)
+do homework (做作业)
+listen to music (听音乐)
+make a cake (做蛋糕)
+wash the car (洗车)
+carrot (胡萝卜)
+egg (鸡蛋)
+sandwich (三明治)
+chicken (鸡肉)
+bread (面包)
+sausage (香肠)
+chocolate (巧克力)
+cheese (奶酪)
+countryside (农村)
+village (乡村)
+town (城镇)
+city (城市)""", """He doesn't like... (他不喜欢...)
+He likes... (他喜欢...)
+He doesn't like (他不喜欢...)
+He loves... (他爱...)
+Does he enjoy...? (他喜不喜欢...？)
+Yes, he does (是的，他喜欢)
+No, he doesn't (不，他不喜欢)"""),
+("""6. Hobbies""", """play the piano (弹钢琴)
+play the guitar (弹吉他)
+play the recorder (弹竖笛)
+make models (做模型)
+make films (做电影)
+do karate (做空手道)
+do gymnastics (做体操)
+play table tennis (打乒乓球)
+play badminton (打羽毛球)
+play volleyball (打排球)
+brass (铜管乐器)
+percussion (打击乐器)
+string (弦乐器)
+woodwind (木管乐器)
+piano (钢琴)
+instrument (乐器)""", """She...on Sundays (她星期天...)
+Does she...in the evening? (她晚上...吗？)"""),
+("""7. At the market""", """lemon (柠檬)
+lime (酸橙)
+watermelon (西瓜)
+coconut (椰子)
+grape (葡萄)
+mango (芒果)
+pineapple (菠萝)
+pear (梨子)
+tomato (番茄)
+onion (洋葱)
+smoothie (冰沙)
+banana (香蕉)
+juice (果汁)
+root (根)
+stem (干)
+leaf (叶子)
+fruit (水果)
+seed (种子)""", """There are a lot of... (那里有很多的...)
+There are lots of (那里有很多的...)
+There are some... (那里有一些...)
+There aren't any... (那里没有任何...)
+Are there any...? (那里有...吗？)
+Yes, there are (有)
+No, there aren't (没有)"""),
+("""8. At the beach""", """sun (太阳)
+burger (汉堡包)
+chips (薯条)
+sunglasses (太阳镜)
+swimsuit (泳装)
+shorts (短裤)
+towel (毛巾)
+shell (贝壳)
+sea (海洋)
+sand (沙)
+mine (我的)
+yours (你的)
+his (他的)
+hers (她的)
+ours (我们的)
+theirs (他们的)
+starfish (海星)
+crab (螃蟹)
+jellyfish (水母)
+octopus (章鱼)
+sea horse (海马)""", """Which...is...? (哪个【名词】是【形容词】？)
+The...one (...的那个)
+Whose...is this? (这...是谁的？)
+It's... (这是...的)
+Whose...are these? (这些...是谁的？)
+They're... (它们是...的)""")]
+        GW4 = [
+        ("""Welcome""", """dark hair (深色的头发)
+straight hair (直发)
+glasses (眼镜)
+fair hair (浅色的头发)
+curly hair (卷曲的头发)
+red hair (红色的头发)
+metre (公米)
+centimetres (厘米)
+chair (椅子)
+desk (课桌)
+teacher (老师)
+friend (朋友)
+best friend (最好的朋友)
+programme (节目)
+local community (当地的社区)
+adventure (冒险)
+playground (操场)
+How exciting! (多么地令人激动啊！)
+register (注册)
+good idea (好的主意)
+watching TV (看电视)
+going ice skating (去滑冰)
+making models (制作模型)
+playing the guitar (弹吉他)
+going bowling (打保龄球)
+playing table tennis (打乒乓球)
+pattern (图案)
+stripes (斑)
+spots (圆点)
+wavy lines (卷发)
+zigzags (之字形)""", """What does...look like (...看起来什么样？)
+He's... (他是...)
+He's got... (他有...)
+He's...centimetres tall (他...厘米高)
+How tall is... (...是多高？)
+How high is... (...是多高？)
+I like... (我喜欢...)
+This is me with my friend... (这是我和我的朋友)
+What's his name? (他叫什么名字？)
+Do you like...? (你喜不喜欢...？)
+What shall we do? (我们要做什么？)
+How about...? (...怎么样？)
+Let's... (...吧)"""),
+("""1. Fun sports""", """fishing (钓鱼)
+ice skating (滑冰)
+skateboarding (滑板)
+sailing (航行)
+kayaking (皮艇)
+bowling (保龄球)
+mountain biking (山地自行车)
+skiing (滑雪)
+snowboarding (单板滑雪)
+talent show (才艺秀)
+making films 制作影片
+Well done! (干得好)
+turn (转)
+shake (摇)
+bend... (使...弯曲)
+stretch (伸展）
+kick (踢)""", """I'm good at... (我善于...)
+I'm not very good at... (我不善于...)
+Here you are (送给你)
+Welcome to... (欢迎光临...)
+It looks great! (它看起来很好)"""),
+("""2. Around town""", """town (城镇)
+shopping centre (商场)
+square (广场)
+underground station (地铁站)
+hotel (酒店)
+traffic light (红绿灯)
+museum (博物馆)
+restaurant (饭店)
+bank (银行)
+zebra crossing (斑马线)
+bus station (公共汽车站)
+opposite (在...对面)
+next to (在...旁边...)
+behind (在...后面)
+in front of (在...前面)
+in (在...里面)
+below (在...下)
+near (在...附近)
+far from (在...远处)
+above (在...上方)
+start (开始)
+go straight ahead (走一直)
+turn left (左转)
+turn right (右转)
+stop (停)
+morning (早上)
+lunch (午饭)
+afternoon (下午)
+evening (晚上)
+sphere (球体)
+cylinder (圆柱体)
+cone (圆锥体)
+cube (立方体)
+pyramid (棱锥提)""", """Where's...? (...在哪里？)
+It's... (它在...)
+There is... (有...(单数的名词))
+There are... (有...(复数的名词))
+Follow me (跟我)
+Be careful (小心)
+Excuse me (打扰你一下)
+How do you get to...? (到...怎么走？)"""),
+("""3. At work""", """work (工作)
+doctor (医生)
+nurse (护士)
+artist (画家)
+singer (歌手)
+actor (演员)
+vet (兽医)
+businessman (商人)
+businesswoman (商女)
+bus driver (公共汽车司机)
+pilot (飞行员)
+office (办公室)
+first (第一)
+outdoor work (外边工作)
+factory work (工厂工作)
+transport work (运输工作)
+shop work (商店工作)""", """What does...do? (...的工作市什么？)
+He's a... (他是...)
+Where does he work? (他工在哪里？)
+What do you want to be? (你想要成为什么？)"""),
+("""4. Wild animals""", """kangaroo (袋鼠)
+koala (考拉)
+parrot (鹦鹉)
+penguin (企鹅)
+bat (蝙蝠)
+owl (猫头鹰)
+jaguar (豹子)
+bear (熊)
+panda (熊猫)
+gorilla (大猩猩)
+bigger than... (比...大)
+smaller than... (比...小)
+too (也)
+noisier than... (比...吵闹)
+quieter than... (比...安静)
+come from (来自)
+box (盒子)
+nail (钉)
+glue (胶水)
+scissors (剪刀)
+kite (风筝)
+balls (球)
+colouring pencils (彩笔)
+rubber (橡皮)
+mammal (哺乳动物)
+reptile (爬虫动物)
+amphibian (两栖动物)""", """Is X ...than Y? (X比Y【形容词】吗)"""),
+("""5. Food and drink""", """pasta (意大利面)
+yoghurt (酸奶)
+soup (汤)
+pizza (比萨)
+salad (沙拉)
+nuts (坚果)
+tea (茶)
+coffee (咖啡)
+biscuit (饼干)
+crisps (薯片)
+always (总是)
+usually (常常)
+sometimes (有时)
+never (从来不)
+How often (多久)
+breakfast (早饭)
+lunch (午饭)
+dinner (晚饭)
+wash your hands (洗你的手)
+orange juice (橙汁)
+fruit salad (水果沙拉)
+fruit (水果)
+rain (雨)
+glacier (冰河)
+well (水井)
+spring (泉水)""", """I...have...for... (我【多久】为【哪个餐】吃【食物】)"""),
+("""6. Health matters""", """health (干净)
+cold (冷)
+cough (咳嗽)
+earache (耳朵疼)
+stomachache (肚疼)
+backache (背疼)
+sore throat (喉咙疼)
+temperature (温度)
+toothache (牙疼)
+headache (头疼)
+cousin (表亲)
+club (俱乐部)
+competition (比赛)
+fabric (布)
+fuel (燃料)
+medicine (药)""", """He's got a... (他有有一个...)
+What's the matter? (怎么了?)
+Poor you (你好惨啊)"""),
+("""7. Buildings""", """building (建筑)
+ground floor (地面一层)
+first floor (第一楼)
+second floor (第二楼)
+third floor (第三楼底层)
+lift (电梯)
+roof (屋顶)
+basement (地下室)
+garage (车库)
+stairs (楼梯)
+attic (阁楼)
+yesterday morning (昨天早上)
+yesterday afternoon (昨天下午)
+yesterday evening (昨天晚上)
+flat (公寓)
+reward (奖励)
+helmet (头盔)
+grandpa (爷爷)
+grandma (奶奶)
+uncle (叔叔)
+clay (泥土)
+stone (石头)
+animal skins (动物毛皮)""", """Where were you yesterday? (你昨天在哪里？)
+I was in... (我在...里面)
+I was on... (我在...上面)
+I was above... (我在...上方)
+Were you...last night? (你昨天晚上在...吗？)
+Yes, I was (我在)
+No, I wasn't (我不在)
+Here's... (这里有...)
+Oh dear (天啊)
+It looks like... (看起来像...)
+Just a minute (等一下)"""),
+("""8. Weather""", """weather (天气)
+temperature (温度)
+hot (热的)
+sunny (晴天的)
+cold (冷的)
+warm (暖和的)
+snowy (多雪的)
+cloudy (多云的)
+foggy (雾茫茫)
+windy (刮风的)
+rainy (多雨的)
+last night (昨晚)
+festival (节日)
+fantastic (太棒啦)
+amazing (太棒啦)
+sculpture (雕塑)
+snowman (雪人)
+party (派对)
+be late (迟到)
+everyone (大家)
+hurricane (飓风)
+tornado (龙卷风)
+rainstorm (暴风雨)
+blizzard (暴风雪)
+thunder and lightning (雷和闪电)""", """Do you like...? (你喜不喜欢...？)
+Yes, I do (我喜欢)
+No, I don't (我不喜欢)
+What is the weather like? (天气怎么样？)
+What was the weather like yesterday? (昨天的天气怎么样？)""")]
+        SS  = [
+        ('Unit 1',
+        (('Lessons 1-2', """green (绿色)
+white (白色)
+red (红色)
+black (黑色)
+yellow (黄色)
+blue (蓝色)
+banana (香蕉)
+ball (球)
+pear (梨子)
+eraser (橡皮)
+apple (苹果)
+one (1)
+two (2)
+three (3)
+four (4)
+five (5)
+six (6)
+seven (7)
+eight (8)
+nine (9)
+ten (10)""", """How are you? (你好吗？)
+Fine, thanks (我很好，谢谢)
+What's that? (那是什么？)
+Can you...? (你能...吗？)
+Yes, I can (我能)
+No, I can't (我不能)
+There is... (有一个...)
+There are... (有一些...)
+How many...? (多少...？)"""),
+        ('Lessons 3-4', """green (绿色)
+white (白色)
+red (红色)
+black (黑色)
+yellow (黄色)
+blue (蓝色)
+one (1)
+two (2)
+three (3)
+four (4)
+five (5)
+six (6)
+seven (7)
+eight (8)
+nine (9)
+ten (10)""", """What colour is...? (【单数的名词】是什么颜色？)
+What colour are...? (【复数的名词】是什么颜色？)
+Is X Y? (X 是 Y 吗？)
+What...? (什么...？)"""),
+('Lessons 5-6', """classroom (教室)
+on (在...上面)
+box (盒子)
+desk (课桌)
+book (书)
+chair (椅子)
+board (白板、黑板)
+flower (花)
+computer (电脑)
+window (窗户)""", """What colour's...? (...是什么颜色？)
+It's... (它是...)"""),
+('Lessons 7-8', """Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk LL Mm
+Nn Oo Pp Qq Rr Ss Tt Uu Vv Ww Xx Yy Zz
+banana (香蕉)
+milk (牛奶)
+grapes (葡萄)
+lemon (柠檬)""", """Is...? (是【第三人称单数的be动词】...吗？)
+Are...? (是(第三人称复数的be动词)...吗？)"""))),
+        ('Unit 2',
+        (('Lessons 1-2', """Pardon? (请再说一下)
+shirt (衬衫)
+skirt (短裙)""", """What's that? (那是什么？)
+What can you see? (你能看什么？)
+It's a... (它是一个...)
+I'm making a hat (我在做一个帽子)
+I'm wearing a shirt (我穿着一件衬衫)
+There's a... (那里有一个...)
+There are... (哪里有一些...)"""),
+        ('Lessons 3-4', """put...on (穿上...)
+trousers (裤子)
+shoes (鞋子)
+hat (帽子)
+T-shirt (T恤衫)""", """He's wearing... (他穿着...)
+she's wearing... (她穿着...)
+I'm wearing... (我穿着...)"""),
+        ('Lessons 5-6', """under (在...下面)
+in (在...里面)
+on (在...上面)
+socks (袜子)
+jeans (牛仔裤)
+handbag (手提包)
+glasses (眼镜)
+cupboard (柜子)
+jacket (夹克)
+point (指)""", """point to... (指向...)
+Where's...? (...在哪里？)"""),
+        ('Lessons 7-8', """next to (在...旁边)
+in front of (在...前面)
+behind (在...后面)""", """What's he looking at? (他在看什么？)
+He's looking at... (他在看...)
+Is she wearing...? (她穿着...吗？)
+Are you wearing... (你穿着...吗？)"""))),
+        ('Unit 3',
+        (('Lessons 1-2', """paint (画画)
+monster (怪物)
+face (脸)
+eye (眼睛)
+nose (鼻子)
+mouth (嘴)
+hair (头发)
+head (头)
+ear (耳朵)
+his (他的)
+her (她的)
+favourite (最喜欢的)""", """Kim's painting her monster (Kim在画画她的怪物)
+What colour are his eyes? (他的眼睛是什么颜色？)
+I like... (我喜欢...)
+I don't like... (我不喜欢...)
+His face is orange (他的脸是橙色的)"""),
+        ('Lessons 3-4', """body (身体)
+hand (手)
+arm (胳膊)
+foot/feet (脚 (单数/复数))
+leg (腿)""", """What colour is/are...? (...是什么颜色？)
+How many...? (多少...？)
+Is...? (是(第三人称单数的be动词)...吗？)
+Are...? (是(第三人称复数的be动词)...吗？)"""),
+        ('Lessons 5-6', """playing in the park (在公园里玩)
+flying a kite (在放风筝)
+sitting down (在坐着)
+running (在跑步)
+smiling (在笑着)
+wearing a hat (在戴着一顶帽子)""", """What's he/she doing? (他/她在做什么？)
+He's ... (他在【动词ing】)
+She's... (她在【动词ing】)
+They are... (他们在【动词ing】)
+It is... (是【动词ing】)"""),
+        ('Lessons 7-8', """eleven (11)
+twelve (12)
+thirteen (13)
+fourteen (14)
+fifteen (15)
+sixteen (16)
+seventeen (17)
+eighteen (18)
+nineteen (19)
+twenty (20)
+ugly (丑的)
+funny (搞笑的)""", """Have you got...? (你有没有...？)
+Has he got...? (他有没有...？)
+Yes, I have got... (我有...)
+No, I haven't got (我没有...)
+Yes, he has got... (他有...)
+No, he hasn't got... (他没有...)"""))),
+        ('Unit 4',
+        (('Lessons 1-2', """family (家人)
+photo (照片)
+grandfather (爷爷，外公)
+grandmother (奶奶，外婆)
+birthday (生日)
+their (他们的)
+your (你的)
+my (我的)
+house (家)
+live (住)
+for (为)
+father (爸爸)
+mother (妈妈)
+brother (哥哥、弟弟)
+sister (姐姐、妹妹)
+child/children (孩子 (单数/复数))""", """What are you doing? (你在干什么？)
+Do you live in...? (你住在...吗？)
+I'm making the card for her birthday (我在为她的生日制作这张卡片)
+A's...is  B (A的【家庭成员】是B)
+A is B's... (A是B的【家庭成员】)
+A and B are C and D's... (A和B是C和D的【父母、孩子们】)"""),
+        ('Lessons 3-4', """my (我的)
+mime (默剧)
+making a cake (在做蛋糕)
+watching TV (在看电视)
+playing the guitar (在弹吉他)
+reading a book (在看书)
+playing on the computer (在玩电脑)""", """"""),
+        ('Lessons 5-6', """bookcase (书柜)
+clock (种)
+cousin (表亲)
+wearing a yellow dress (在穿着黄色裙子)
+eating ice cream (在吃冰淇淋)
+sleeping under the table (在桌子下睡觉)
+sitting in the armchair (在扶手椅上坐)
+looking at the photo card (在看照片卡)
+writing (写着)""", """What's...doing? (...在坐什么？)"""),
+        ('Lessons 7-8', """grandma (奶奶)
+grandpa (爷爷)
+smile (笑)
+come (来)
+man/men (男人 (单数/复数))
+woman/women (女人 (单数/复数))
+chold/children (孩子 (单数/复数))
+person/people (人 (单数/复数))""", """My mum's name is... (我妈妈叫...)
+Have you got...? (你有没有...？)
+Has he got...? (他有没有...？)
+How old...? (...多岁？)
+How many...? (多少...？)
+What's your dad's name? (你爸爸叫什么名字？)"""))),
+        ('Unit 5',
+        (('Lessons 1-2', """bike (自行车)
+cousin (堂亲、表亲)
+favourite (最喜欢的)
+motorbike (摩托车)
+bus (公共汽车)
+plane (飞机)
+car (车)
+behind (在...后面)
+in front of (在...前面)
+above (在...上方)
+between...and... (在...和...中间)
+helicopter (直升机)
+lorry (卡车)
+boat (船)
+train (火车)""", """The motorbike's behind the red car (摩托车在红色的车后面)
+THe plane's above the motorbike (飞机在摩托车上方)
+The green car's between the black bike and the bus (绿色的车在黑色的自行车和公共汽车中间)
+Whose...? (...是谁的？)
+It's...'s (它是...的)
+I like... (我喜欢...)
+...'s favourite...is... (...的最喜欢的...是...)"""),
+        ('Lessons 3-4', """have got... (有...)
+        haven't got (没有...)
+we (我们)""", """I've got a bus but I haven't got a motorbike (我有公共汽车但是我没有摩托车)
+I'm making a street picture (我在做街景图)"""),
+        ('Lessons 5-6', """waving (在摆手)
+ice cream (冰淇淋)
+open (开的)
+closed (关的)""", """Where...? (...在哪里？)
+Is there...? (有一个...吗？)
+What's...doing? (...在做什么？)
+What colour's...? (...是什么颜色？)
+Who's doing? (谁在...ing？)"""),
+        ('Lessons 7-8', """Mr. (先生)
+Mrs. (太太)
+cool! (太棒了)
+very (很)""", """Whose bike is...? (谁的自行车是...？)
+...'s bike is... (...的自行车是...)
+Has...got...? (...有没有...？)
+Which...? (哪个...？)"""))),
+        ('Unit 6',
+        (('Lessons 1-2', """animal (动物)
+bird (鸟)
+fish (鱼)
+chicken (鸡)
+dog (狗)
+goat (山羊)
+fly (飞)
+walk (走)
+swim (游泳)
+run (跑步)
+lay eggs (下蛋)
+dinner (晚饭)
+mouse (鼠)
+sheep (羊)
+cow (牛)
+duck (鸭)
+horse (马)
+sing (唱歌)
+jump (跳)""", """The bird can fly (鸟会飞)
+The bird can walk (鸟会走)
+The bird can't sing (鸟不会唱歌)
+Can it...? (...会不会...？)
+Yes, it can... (会)
+No, it can't... (不会)"""),
+        ('Lessons 3-4', """lizard (蜥蜴)
+frog (青蛙)
+hippo (河马)
+spider (蜘蛛)
+tiger (老虎)
+elephant (大象)
+monkey (猴子)
+giraffe (长颈鹿)
+crocodile (鳄鱼)
+snake (蛇)
+grass (草)""", """"""),
+        ('Lessons 5-6', """tail (尾巴)
+tree (树)
+on (在...上)
+next to (在...旁边)
+in (在...里)
+under (在...下)
+point (指)""", """Where's...? (...在哪里？)
+What's...doing? (...在做什么？)
+What's that? (那是什么？)"""),
+        ('Lessons 7-8', """flying a plane (在开飞机)
+driving a car (在开车)
+reading a book (在看书)
+watching TV (在看电视)
+riding a bike (在骑自行车)
+swim (游泳)
+walk (走)
+talk (说话)""", """Can you...? (你能不能...？)
+Yes, I can... (我能)
+No, I can't... (我不能)
+Have you got...? (你有没有...？)
+Yes, I have (我有)
+No, I haven't (我没有)"""))),
+        ('Unit 7',
+        (('Lessons 1-2', """classroom (教室)
+teacher (老师)
+board (白板、黑板)
+desk (课桌)
+pencil (铅笔)
+pen (笔)
+at home (在家)
+over there (那里)
+know (知道)
+school (学校)
+question (问句)
+sentence (句子)
+ruler (尺子)
+picture (图片)
+eraser (橡皮)
+school bag (书包)
+alphabet (字母表)
+on (在...上面)
+next to (在...旁边)
+in front of (在...前面)
+behind (在...后面)""", """Sam's pen's on the floor (Sam的笔在地板上)
+The books are on the desk (书在课桌上)
+Is Sam's pencil in his bag? (Sam的铅笔在他的书包里吗？)"""),
+        ('Lessons 3-4', """alphabet (字母表)""", """Sam's pen's on the floor (Sam的笔在地板上)
+The books are on the desk (书在课桌上)
+Is Sam's pencil in his bag? (Sam的铅笔在他的书包里吗？)"""),
+        ('Lessons 5-6', """crocodile (鳄鱼)
+snake (蛇)
+tiger (老虎)
+zoo (动物园)
+book (书)
+wall (墙)
+picture (图片)
+ruler (尺子)
+desk (课桌)""", """What is...doing? (...在做什么？)
+Where is/are...? (...在哪里？)
+What is next to...? (在...旁边有什么？)
+Which...? (哪个...？)"""),
+        ('Lessons 7-8', """word (单词)
+tick (打勾)
+cross (打叉)
+letter (字母)""", """Where...? (...在哪里？)
+Who...? (谁...？)
+What's in...? (在...里有什么？)
+Are you...? (你是不是...？)"""))),
+        ('Unit 8',
+        (('Lessons 1-2', """baseball (棒球)
+hockey (曲棍球)
+badminton (羽毛球)
+basketball (篮球)
+football (足球)
+tennis (网球)
+swimming (游泳)""", """I like...ing (我喜欢...)
+Let's go...ing (...吧)
+Would you like...? (你想不想...？)"""),
+        ('Lessons 3-4', """play badminton (打羽毛球)
+ride a bike (骑自行车)
+play table tennis (打乒乓球)
+play football (踢足球)
+play hockey (打曲棍球)
+play baseball (打棒球)
+play a game (做游戏)
+ride a horse (骑马)
+fish (钓鱼)
+play the guitar (弹吉他)
+read a book (看书)
+do sth. with... (和...一起...)
+play soccer (踢足球)""", """I am playing badminton (我在打羽毛球)
+He is riding a bike (他在骑自行车)
+They are reading a book (他们在看书)"""),
+        ('Lessons 5-6', """kick a football (踢足球)
+bounce a ball (弹球)
+throw a ball (扔球)
+catch a ball (接球)
+jump (跳)
+run (跑步)
+playground (操场)""", """I am bouncing a ball (我在弹球)
+You are throwing a ball (你在扔球)
+She is catching a ball (她在接球)
+It is running (它在跑步)"""),
+        ('Lessons 7-8', """""", """Do you like...ing? (你喜不喜欢...？)
+Can you play...? (你能不能打...)
+What's your favorite...? (你最喜欢的...是什么？)"""))),
+        ('Unit 9',
+        (('Lessons 1-2', """food (食物)
+fries (薯条)
+burger (汉堡包)
+lemon (柠檬)
+ice cream (冰淇淋)
+chicken (肌肉)
+onion (洋葱)
+rice (米)
+mango (芒果)
+lots of... (很多)
+a lot of... (很多)
+want (想要)
+egg (鸡蛋)
+banana (香蕉)
+carrot (胡萝卜)
+tomato (番茄)
+bread (面包)
+meat (肉)
+potato (土豆)
+pea (豌豆)
+bean (豆)
+apple (苹果)
+lemonade (柠檬汁)
+milk (牛奶)
+orange juice (橙汁)
+water (水)
+or (还有)""", """I want fries (我想要薯条)
+He wants to eat ice cream (他想要吃冰淇淋)
+Do you want ice cream or water? (你想要冰淇淋还是水？)"""),
+        ('Lessons 3-4', """pineapple (菠萝)
+coconut milk (椰奶)
+grape (葡萄)
+lime juice (酸橙汁)
+watermelon (西瓜)""", """What are you having for lunch? (你中午吃什么？)
+I'm having... (我在吃...)"""),
+        ('Lessons 5-6', """birthday cake (生日蛋糕)
+orange juice (橙汁)
+candle (蜡烛)
+balloon (气球)""", """He's drinking... (他在喝...)
+She's eating... (她在吃...)
+We're playing... (我们在玩...)
+I'm kicking... (我在踢...)"""),
+        ('Lessons 7-8', """breakfast (早饭)
+lunch (午饭)
+dinner (晚饭)
+supper (晚饭)
+nice (好的)""", """Who's got...? (谁有...？)
+I've got... (我有...)
+He's got... (他有...)"""))),
+        ('Unit 10',
+        (('Lessons 1-2', """house (家)
+flat (公寓)
+room (房间)
+number (数字)
+apartment (公寓)
+kitchen (厨房)
+dining room (餐厅)
+living room (客厅)
+bedroom (卧室)
+bathroom (卫生间)
+hall (走廊)
+garden (花园)
+look at (看)
+lots (很多)""", """"""),
+        ('Lessons 3-4', """doll (玩具娃娃)
+lamp (灯)
+mat (垫)
+radio (收音机)
+mirror (镜子)
+cupboard (橱柜)
+table (桌子)
+on (在...上)
+in front of (在...前面)
+in (在...里)
+next to (在...旁边)
+under (在...下)""", """"""),
+        ('Lessons 5-6', """sofa (沙发)
+armchair (扶手椅)
+piano (钢琴)""", """Where's...? (...在哪里？)
+What's...? (什么是...？)
+Who's got...? (谁有...？)
+What colour's...? (...是什么颜色？)
+What's your...? (你的...是什么？)"""),
+        ('Lessons 7-8', """big (大的)
+young (年轻的)
+clean (干净的)
+happy (快乐的)
+short (矮的)
+ugly (丑的)
+angry (生气的)
+sad (难过的)
+long (长的)
+dirty (脏的)
+beautiful (漂亮的)
+new (新的)
+old (老的)""", """""")))]
+        MM  = [
+    ('Unit 1',
+     (('Lessons 1-2', """birthday party (生日派对)
+then (那个时候)
+monster (怪物)
+cousin (表亲)
+pirate (海盗)
+clown (小丑)
+curly (卷的)
+aunt (阿姨)""", """Can you...? (你能不能...？)
+Yes, I can (我能)
+No, I can't (我不能)
+Who...? (谁...？)
+What is he wearing? (他穿着什么？)
+He is wearing.. (他穿着...？)
+Do you...? (你...？)
+Does he...? (他...？)"""),
+      ('Lessons 3-4', """""", """The monkey's eating a banana (猴子在吃香蕉)
+There is.. (有一个...)
+There are.. (有一些...)
+There are four elephants at the party (在派对有四只大象)"""),
+      ('Lessons 5-6', """shorts (短裤)
+bandminton (羽毛球)
+trousers (裤子)
+pullover (毛衣)
+sportswear (运动衣)
+story (故事)
+listen to CDs (听光盘)""", """Peter’s wearing a red and white football shirt (Peter穿着红白色足球的衬衫)
+In picture A uncle Fred’s playing badminton, but in picture B he is playing football (在图片A里Fred叔叔在打羽毛球，但是在图片B他在踢足球)
+Where does the pirate live? (海盗住在哪里？)
+The pirate lives... (海盗住在...)"""),
+      ('Lessons 7-8', """aunt (阿姨)
+island (岛)
+coat (外套)
+monkey (猴子)
+clown (小丑)
+jungle (森林)
+straight (直的)
+curly (卷的)
+strong (重的)
+weak (弱的)""", """Monkeys live in the jungle (猴子住在森林)
+Pip wears a purple coat (Pip穿着紫色的外套)
+Pip lives on an island (Pip住在岛上)
+Do you...? (你...？)"""))),
+    ('Unit 2',
+     (('Lessons 1-2', """look like... (看起来像...)
+look inside (在里面看)
+must (必须)
+mustn't (必须不)
+careful (小心的)
+need (需要)
+help (帮助)
+treasure (宝藏)
+map (地图)
+exciting (令人兴奋的)
+excited (兴奋的)
+lake (湖)
+river (河)
+sea (海)
+ocean (海洋)
+near (近的)
+mean (意思)
+rock (石头)
+say (说)
+rainbow (彩虹)
+oh, dear (天啊)
+eat (吃)
+drink (喝)
+bowl (碗)""", """It looks like a box (看起来像一个盒子)
+This looks like treasure (这看起来像宝藏)
+You must be careful (你必须当心)
+I need some help (我需要一些帮助)
+I can see a lake (我能看一个湖)
+How exciting! (太令人兴奋了！)
+Do you know what that means? (你知道那是什么意思吗？)
+It means... (它的意思是...)
+When you see a rainbow, you must go to the big tree and then... (当你看到彩虹的时候，你必须去大树那里，然后...)"""),
+      ('Lessons 3-4', """holiday (节日)
+camera (照相机)
+carpet (地毯)
+fast (快的)
+beach (海滩)
+cold (冷的)""", """Does the bag look new? (这个包看起来新的吗？)
+Yes, it does (是，它是的)
+No, it doesn’t (不，它不是的)
+Is Mary wearing a yellow hat? (Mary穿着黄色的帽子吗？)
+Yes, she is (是，她正穿着)
+No, she isn’t (不，她没有)"""),
+      ('Lessons 5-6', """mountain (山)
+crocodile (鳄鱼)
+live with (住在一起)
+dolphin (海豚)
+take a photo (拍照)""", """There is a box next to the house (在家旁边有一个盒子)"""),
+      ('Lessons 7-8', """bowl (碗)
+a bowl of... (一碗...)
+blanket (毯子)
+glass (玻璃杯)
+a glass of (一杯...)
+picnic (野餐)
+radio (收音机)
+sandwich (三明治)
+smile at... (对...笑)
+awake (醒的)
+run away (逃跑)""", """Can you take photos with a radio? (能不能用收音机拍照？)
+Can you eat sandwiches on a picnic? (能不能在野餐时吃三明治？)"""))),
+    ('Unit 3',
+     (('Lessons 1-2', """body (身体)
+matter (事情)
+backache (背疼)
+doctor (医生)
+hurt (疼)
+badly (不好地)
+nothing (没有什么)
+right (对的)
+wrong (不对的)
+nurse (护士)
+temperature (温度)
+just (就)
+toothache (牙疼)""", """What’s the matter? (怎么了？)
+What’s wrong? (怎么了？)
+I’ve got a headache/backache/toothachetomachache (我头疼、背疼、牙疼、肚疼)
+My back hurts (我背疼)
+My leg hurts (我腿疼)
+There is nothing wrong with your back (你的背没有问题)
+Take your temperature (量你的体温)
+Have you got a headache? (你头疼吗？)
+Does your leg hurt? (你腿疼吗？)"""),
+      ('Lessons 3-4', """comics (漫画书)
+cooking (做饭)
+play the piano (弹钢琴)
+watch a video (看视频)
+weekend (周末)
+go fishing (去钓鱼)""", """Peter likes playing basketball (Peter喜欢打篮球)
+Dad doesn’t like playing the piano (爸爸不喜欢弹钢琴)
+A football player is good at kicking (足球员擅长踢)
+Which sport are you good at? (你擅长哪个运动？)"""),
+      ('Lessons 5-6', """stomachache (肚疼)
+cycling (骑自行车)
+rowing (划船)
+skipping (跳绳)""", """Peter's standing by the door (Peter在门附近站着)
+Paul's skipping (Paul在跳绳)
+What's the matter with him? (他怎么了？)"""),
+      ('Lessons 7-8', """tooth/teeth (呀 (单数/复数))
+beard (胡子)
+kick (踢)
+neck (脖子)
+shoulder (肩膀)
+be good at...ing (擅长...)
+toe (脚指)""", """Your shoulder's near your neck (你的肩膀在你的脖子附近)
+Your teeth are in your mouth (你的牙在你的嘴里)"""))),
+    ('Unit 4',
+     (('Lessons 1-2', """swimming pool (游泳馆)
+Saturday (星期六)
+this afternoon (今天下午)
+the way to (怎么走)
+often (常常)
+wrong (错的)
+excuse me (打扰一下)
+sports center (体育中心)
+never (从来不)
+make a mistake (犯错)
+tired (累的)
+ice cream (冰淇淋)
+sometimes (有时)
+always (总是)
+hardly ever (几乎从来不)""", """It is time to play (玩的时候)
+How about going to the swimming pool (去游泳馆呢？)
+I always play football on Saturday (我总是星期六踢足球)
+I often go there (我常常去那里)
+I never make mistakes (我几乎从不犯错)
+I think this is the wrong road (我认为这是错误的道路)
+What do you do after school/on Saturday? (你星期六/学校后干什么？)"""),
+      ('Lessons 3-4', """Monday (星期一)
+Tuesday (星期二)
+Wednesday (星期三)
+Thursday (星期四)
+Friday (星期五)
+Saturday (星期六)
+Sunday (星期天)
+do homework (做作业)
+play (玩)
+hockey (曲棍球)
+play tennis (打网球)
+go skating (去滑冰)
+visit someone (拜访...)
+great (很好)
+get dressed (穿)
+wash (洗)
+shower (淋浴)""", """Peter plays football on Friday (Peter星期五踢足球)
+They go swimming on Tuesday (他们星星期二游泳)
+Does he play hockey on Wednesday? (他下去打曲棍球吗？)
+Yes, he does (是，他玩的)
+No, he doesn’t (不，他不玩的)
+Do you go to the cinema on Thursday? (你星期四去电影馆吗？)
+Yes, we do (是，我们去的)
+No, we don’t (不，我们不去的)"""),
+      ('Lessons 5-6', """lady (女人)
+go/went (去 (现在时/过去时))
+do/did (做 (现在时/过去时))
+is/was (是 (现在时/过去时))""", """Peter is the boy who is in a bus (Peter是在公共汽车上的男孩子)
+Who went to the cinema with Sally? (谁和Sally一起去电影馆？)
+When did they go to the cinema? (他们什么时候去电影院？)"""),
+      ('Lessons 7-8', """one/first (一/第一)
+two/second (二/第二)
+three/third (三/第三)
+four/fourth (四/第四)
+five/fifth (五/第五)
+six/sixth (六/第六)
+seven/seventh (七/第七)
+eight/eighth (八/第八)
+nine/ninth (九/第九)
+ten/tenth (十/第十)
+eleven/eleventh (十一/第十一)
+twelve/twelfth (十二/第十二)""", """"""))),
+    ('Unit 5',
+     (('Lessons 1-2', """fly a kite (放风筝)
+weather (天气)
+enjoy (喜欢)
+terrible (糟糕的)
+police (警察)
+find (找到)
+hour (小时)
+lie (躺下)
+go/went (去 (现在时/过去时))
+fly/flew (飞 (现在时/过去时))
+rain/rained (下雨 (现在时/过去时))
+lose/lost (丢失 (现在时/过去时))
+do/did (做 (现在时/过去时))
+phone/phoned (打电话 (现在时/过去时))
+is/was (是 (他，她，和它的be动词) (现在时/过去时))
+look/looked (看 (现在时/过去时))
+are/were (是 (我们，他们，和你的be动词) (现在时/过去时))
+windy (刮风的)
+cloudy (多云的)
+snowy (多雪的)
+sunny (晴天的)
+rainy (多雨的)
+yesterday (昨天)
+today (今天)
+tomorrow (明天)""", """Monday was good (星期一很好 (过去时))
+I flew my kite (我放风筝 (过去时))
+Did you have a good holiday? (你假期过得好吗？ (过去时))
+Yes, I did. (是，我有)
+No, I didn’t (不，我没有)
+Where did you do that? (你在哪里做的？ (过去时))
+What did you do? (你做了什么？ (过去时))
+What was the weather like? (天气怎么样？ (过去时))
+How often do you go on holiday? (你多久去一次假期？)
+How often do you go for a walk? (你多久去一次散步？)
+How much did it rain yesterday? (昨天下了多少雨？)
+How hot is it today? (今天有多热？)"""),
+      ('Lessons 3-4', """play with (和...玩)
+walk around (随便走走)
+sail (航行)
+field (田野)""", """"""),
+      ('Lessons 5-6', """scarf (围巾)
+sea (海)
+garden (花园)
+cinema (电影馆)""", """"""),
+      ('Lessons 7-8', """sun (太阳)
+snow (雪)
+water (水)
+stairs (楼梯)
+go up (上楼去)
+go down (下楼去)
+dry (干燥)
+wet (湿的)
+last year (去年)
+together (一起)
+funny (搞笑)
+throw (扔)
+all day long (整天)""", """"""))),
+    ('Unit 6',
+     (('Lessons 1-2', """zoo (动物园)
+lion (狮子)
+they/them (他们 (主语/宾语))
+panda (熊猫)
+hungry (饿)
+I'd like... (我想要...)
+pet (宠物)
+bear (熊)
+shark (鲨鱼)
+whale (鲸鱼)
+clever (聪明的)
+dolphin (海豚)
+friend (朋友)
+language (语言)
+parrot (鹦鹉)
+talk (说)
+bat (蝙蝠)
+kangaroo (袋鼠)
+big/bigger/biggest (大的/更大的/最大的)""", """I can’t see the lions (我不能看狮子)
+Look at the panda/shark (看熊猫/鲨鱼)
+Whales are bigger than sharks (鲸鱼比鲨鱼大)
+It’s the biggest fish in the water (是最大在水的鱼)
+They talk to their friends in dolphin language (他们用海豚语与朋友交谈)
+Would you like a pet panda? (你想要一只宠物熊猫吗？)
+Would you like to go to the cinema? (你想去电影馆吗？)
+Yes, I’d like to (我想)"""),
+      ('Lessons 3-4', """""", """The panda’s sleeping in a tree. (熊猫在树里睡觉)"""),
+      ('Lessons 5-6', """small/smaller/smallest (小的/更小的/最小的)
+old/older/oldest (年长的/更年长的/最年长的)
+good/better/best (好的/更好的/最好的)
+because (因为)""", """"""),
+      ('Lessons 7-8', """""", """awake (醒)
+fly (飞)
+strong (重的)
+interesting (有趣的)
+sleep (睡觉)
+most (最)
+wing (翅膀)
+fruit (水果)
+clever/cleverer/cleverest (聪明的/更聪明的/最聪明的)"""))),
+    ('Unit 7',
+     (('Lessons 1-2', """around (周围)
+town (城镇)
+pardon (再说一下)
+speak (说)
+loud (大声的)
+loudly (大声地)
+library (图书馆)
+dinosaur (恐龙)
+opposite (对面)
+downstairs (下楼)
+upstairs (上楼)
+basement (地下室)
+cafe (咖啡店)
+coffee (咖啡)
+look for (找)
+thirsty (渴的)
+shall (要)
+grandson (孙子)""", """Don’t speak so loudly! (说话不要这么大声！)
+I want to look at dinosaur books (我想要看恐龙书)
+I looked for you on the third floor (我在三楼找你)
+Shall I buy you a cup of tea? (我买给你一杯茶呢？)
+1) What kind of books do you like? (你喜欢哪种书？)
+Is there a lift in your library? (你的图书馆有没有电梯？)"""),
+      ('Lessons 3-4', """bank (银行)
+excuse me (打扰一下)
+supermarket (超市)
+cinema (电影馆)""", """What is the girl eating? (女孩子在吃什么？)
+She is eating an apple (她在吃一个苹果)
+"""),
+      ('Lessons 5-6', """trolley (推车)
+go/went (去 (现在时/过去时))
+hear/heard (听 (现在时/过去时))
+are/were (是 (现在时/过去时))
+buy/bought (买 (现在时/过去时))""", """"""),
+      ('Lessons 7-8', """town (城镇)
+supermarket (超市)
+CD (光盘)
+grandparents (爷爷奶奶)
+fruit (水果)
+different (不同的)
+meat (肉)
+many (很多)
+more... (更...)
+most... (最...)
+everything (一切)
+television (电视)
+are/were (是)
+aren't/weren't (不是)
+go/went (去 (现在时/过去时))
+buy/bought (买 (现在时/过去时))""", """When your grandparents were young, there weren’t many supermarkets (你的爷爷奶奶很年轻的时候没有很多的超市)
+They bought meat from one shop (他们从一家商店买了肉)"""))),
+    ('Unit 8',
+     (('Lessons 1-2', """world (世界)
+over there (那里)
+countryside (乡)
+quiet/quieter (安静的、更安静的)
+listen (停)
+mine (我的)
+farm (农场)
+field (田野)
+climb (爬)
+worry (担心)
+grass (草)""", """Where do you live? (你住在哪里？)
+There’s my house near the river (河边有我家)
+It’s quieter than the town (比城市还安静)
+Your house is bigger than mine (你的家比我的大)
+I’m not good at climbing trees (我不擅长爬树)
+You are very good at climbing trees (你很会爬树)
+Are you good at climbing trees? (你擅长爬树吗？)""", """~~~~~~代词~~~~~~
+主语 -  宾语 - 谁的加名词 - 谁的无铭赐
+I         me      my      mine
+we      us       our     ours
+you     you     your   yours
+he      him     his      him
+she     her      her     hers
+it        it         its       its
+they   them    their   them"""),
+      ('Lessons 3-4', """city (城市)
+village (城镇)
+forest (森林)
+mountain (山)
+road (路)
+busy (忙的)
+empty (空的)
+waterfall (瀑布)""", """The farm is next to a river (农夫在河旁边)
+Would you like to live in a city or the country? (你想住在城市还是乡？)
+I’d like to live in a city (我想住在城市)"""),
+      ('Lessons 5-6', """below (在...下)
+above (在...上方)
+weekend (周末)
+balcony (阳台)""", """How many fields are there? (有多少块田野)"""),
+      ('Lessons 7-8', """train (火车)
+tired (累的)
+best (最好的)
+famous (著名的)
+again (再)
+place (地方)
+drive (开车)
+wake up (醒)
+together (一起)
+old and grey (老而灰白的)""", """The best way to see the world is by train (看世界最好的方式是坐火车)
+It’s very easy to take a train (坐火车很容易)
+It’s very difficult to take a train (坐火车很困难)
+Let’s go round the world (让我们环游世界)"""))),
+    ('Unit 9',
+     (('Lessons 1-2', """count (数数)
+hundred (一百)
+hide (藏)
+playground (操场)
+start (开始)
+ninety-eight (98)
+both (两个都)
+laugh (搞笑)
+look for (找)
+sleep (睡觉)""", """We’re starting now (我们现在开始)
+She’s climbing a tree (她在爬树)
+We’re coming (我们在爬树)
+Jill’s laughing (Jill在笑了)
+There she is (她在那里)
+We have to go back to the classroom now (我们现在得回教室了)
+It is a good idea to ask a friend to help you (请朋友帮忙是个好主意)
+You must start to skate slowly (你开始的时候必须慢慢滑)
+When you are better at doing it, you can go faster (当你做得更好时，你可以走得更快)
+When you go fast, skating is very exciting (当你走得快时，滑冰很刺激)"""),
+      ('Lessons 3-4', """skip (跳绳)
+eat lunch (吃完饭)""", """"""),
+      ('Lessons 5-6', """baby (宝贝)
+weather (天气)
+carry/carried ( (现在时/过去时))
+hurt (受伤)""", """"""),
+      ('Lessons 7-8', """boring (无聊的)
+difficult (困难)
+easy (容易)
+exciting (兴奋的)
+skates (冰鞋)
+never (从来不)
+stand up (站起来)
+idea (主意)""", """"""))),
+    ('Unit 10',
+     (('Lessons 1-2', """computer game (电脑游戏)
+bedtime (睡觉的时间)
+young (年轻的)
+television (电视)
+watch a film (看电影)
+cinema (电影馆)
+talk (说)""", """Do you want to play my computer game with me? (你想要不想和我一起玩电脑游戏？)
+When I was young, we didn’t have computers (我很年轻的时候没有电脑)
+We had to go to the cinema to see films (我们不得不去电影院看电影)
+I have to go to bed (我要去睡觉了)"""),
+      ('Lessons 3-4', """show (电视节目)
+fast car (快车)
+wear/wore (穿 (现在时/过去时))""", """"""),
+      ('Lessons 5-6', """in the past (过去时的)
+now (现在)
+armchair (扶手椅)
+listen to the radio (听收音机)
+sleep/slept ( (现在时/过去时))""", """"""),
+      ('Lessons 7-8', """email (电子邮件)
+many (很多)
+paper (纸)
+can/could (能 (现在时/过去时))
+can't/couldn't (不能 (现在时/过去时))
+answer a question (回答)""", """""")))]
+    # menu items
+        hello_teddy_menu = tk.Menu(self.menubar, tearoff=0)
+        self.menubar.add_cascade(label='Hello Teddy', menu=hello_teddy_menu, compound=tk.LEFT)
+        super_starter_menu = tk.Menu(self.menubar, tearoff=0)
+        self.menubar.add_cascade(label='Super Starter', menu=super_starter_menu, compound=tk.LEFT)
+        mighty_mover_menu = tk.Menu(self.menubar, tearoff=0)
+        self.menubar.add_cascade(label='Mighty Mover', menu=mighty_mover_menu, compound=tk.LEFT)
+        guess_what_menu = tk.Menu(self.menubar, tearoff=0)
+        self.menubar.add_cascade(label='Guess What', menu=guess_what_menu, compound=tk.LEFT)
+        think_menu = tk.Menu(self.menubar, tearoff=0)
+        self.menubar.add_cascade(label='Think', menu=think_menu, compound=tk.LEFT)
+        other_menu = tk.Menu(self.menubar, tearoff=0)
+        self.menubar.add_cascade(label='Other', menu=other_menu, compound=tk.LEFT)
+##-THINK MENUS-#########################################################################################################
+        mt1menu = tk.Menu(think_menu, tearoff=0)
+        think_menu.add_cascade(label='MT1', menu=mt1menu, compound=tk.LEFT)
+        mt2menu = tk.Menu(think_menu, tearoff=0)
+        think_menu.add_cascade(label='MT2', menu=mt2menu, compound=tk.LEFT)
+        mt3menu = tk.Menu(think_menu, tearoff=0)
+        think_menu.add_cascade(label='MT3', menu=mt3menu, compound=tk.LEFT)
+        mt4menu = tk.Menu(think_menu, tearoff=0)
+        think_menu.add_cascade(label='MT4', menu=mt4menu, compound=tk.LEFT)
+        mt5menu = tk.Menu(think_menu, tearoff=0)
+        think_menu.add_cascade(label='MT5', menu=mt5menu, compound=tk.LEFT)
+        mt6menu = tk.Menu(think_menu, tearoff=0)
+        think_menu.add_cascade(label='MT6', menu=mt6menu, compound=tk.LEFT)
+##-COLUMN WIDGETS-######################################################################################################
+        self.leftColumn = tk.Label(self.root)
+        self.leftColumn.pack(side=tk.LEFT,fill=tk.X,expand=True,anchor=tk.N)
+
+        self.centerColumnLeft = tk.Label(self.root)
+        self.centerColumnLeft.pack(side=tk.LEFT,fill=tk.BOTH,expand=True)
+
+        self.centerColumnRight = tk.Label(self.root)
+        self.centerColumnRight.pack(side=tk.LEFT,fill=tk.BOTH,expand=True)
+
+        self.rightColumn = tk.Label(self.root)
+        self.rightColumn.pack(side=tk.LEFT,fill=tk.BOTH,expand=True)
+    # left column
+        self.studentNameLabel = tk.LabelFrame(self.leftColumn,text='Student Name',font=font_labels)
+        self.studentNameLabel.pack(fill=tk.BOTH,expand=True)
+        self.studentEntry = tk.Entry(self.studentNameLabel,width=30)
+        self.studentEntry.pack(fill=tk.BOTH,expand=True)
+
+        self.bookNameLabel = tk.LabelFrame(self.leftColumn,text='Book Name',font=font_labels)
+        self.bookNameLabel.pack(fill=tk.BOTH,expand=True)
+        self.book = ttk.Combobox(self.bookNameLabel, values=BOOK, state='readonly', width=17)
+        self.book.pack(fill=tk.BOTH,expand=True)
+
+        self.bookPageLabel = tk.LabelFrame(self.leftColumn,text='Pages',font=font_labels)
+        self.bookPageLabel.pack(fill=tk.BOTH,expand=True)
+        self.bookPage = tk.Entry(self.bookPageLabel,width=30)
+        self.bookPage.pack(fill=tk.BOTH,expand=True)
+
+        self.behaviorLabel = tk.LabelFrame(self.leftColumn,text='Behavior',font=font_labels)
+        self.behaviorLabel.pack(fill=tk.BOTH,expand=True,pady=(10,10))
+        # speaking
+        speakVar = tk.StringVar()
+        self.speakingLabel = tk.LabelFrame(self.behaviorLabel,text='Speaking',bd=0)
+        self.speakingLabel.pack(fill=tk.BOTH,expand=True,pady=5)
+        self.speakingGood = ttk.Radiobutton(self.speakingLabel,text='Good',value='good',variable=speakVar)
+        self.speakingGood.pack(side=tk.LEFT)
+        self.speakingBad = ttk.Radiobutton(self.speakingLabel,text='Bad',value='bad',variable=speakVar)
+        self.speakingBad.pack(side=tk.LEFT,padx=(10,0))
+        # writing
+        writeVar = tk.StringVar()
+        self.writingLabel = tk.LabelFrame(self.behaviorLabel,text='Writing',bd=0)
+        self.writingLabel.pack(fill=tk.BOTH,expand=True,pady=5)
+        self.writingGood = ttk.Radiobutton(self.writingLabel,text='Good',value='good',variable=writeVar)
+        self.writingGood.pack(side=tk.LEFT)
+        self.writingBad = ttk.Radiobutton(self.writingLabel,text='Bad',value='bad',variable=writeVar)
+        self.writingBad.pack(side=tk.LEFT,padx=(10,0))
+        # reading
+        readVar = tk.StringVar()
+        self.readingLabel = tk.LabelFrame(self.behaviorLabel,text='Reading',bd=0)
+        self.readingLabel.pack(fill=tk.BOTH,expand=True,pady=5)
+        self.readingGood = ttk.Radiobutton(self.readingLabel,text='Good',value='good',variable=readVar)
+        self.readingGood.pack(side=tk.LEFT)
+        self.readingBad = ttk.Radiobutton(self.readingLabel,text='Bad',value='bad',variable=readVar)
+        self.readingBad.pack(side=tk.LEFT,padx=(10,0))
+        # spelling
+        spellVar = tk.StringVar()
+        self.spellingLabel = tk.LabelFrame(self.behaviorLabel,text='Spelling',bd=0)
+        self.spellingLabel.pack(fill=tk.BOTH,expand=True,pady=5)
+        self.spellingGood = ttk.Radiobutton(self.spellingLabel,text='Good',value='good',variable=spellVar)
+        self.spellingGood.pack(side=tk.LEFT)
+        self.spellingBad = ttk.Radiobutton(self.spellingLabel,text='Bad',value='bad',variable=spellVar)
+        self.spellingBad.pack(side=tk.LEFT,padx=(10,0))
+        # listening
+        listenVar = tk.StringVar()
+        self.listeningLabel = tk.LabelFrame(self.behaviorLabel,text='Listening',bd=0)
+        self.listeningLabel.pack(fill=tk.BOTH,expand=True,pady=5)
+        self.listeningGood = ttk.Radiobutton(self.listeningLabel,text='Good',value='good',variable=listenVar)
+        self.listeningGood.pack(side=tk.LEFT)
+        self.listeningBad = ttk.Radiobutton(self.listeningLabel,text='Bad',value='bad',variable=listenVar)
+        self.listeningBad.pack(side=tk.LEFT,padx=(10,0))
+
+##-BUTTONS-#############################################################################################################
+        def clear_all():
+            self.studentEntry.delete(0,tk.END)
+            self.bookPage.delete(0,tk.END)
+            self.newWords.delete(0.0,tk.END)
+            self.grammar.delete(0.0,tk.END)
+            self.sentences.delete(0.0,tk.END)
+            self.homework.delete(0.0,tk.END)
+            self.altogether.delete(0.0,tk.END)
+            self.book.current(0)
+
+            speakVar.set(None)
+            readVar.set(None)
+            writeVar.set(None)
+            spellVar.set(None)
+            listenVar.set(None)
+
+        def combine():
+            NAME = self.studentEntry.get()
+            BOOK = self.book.get()
+            PAGES = self.bookPage.get()
+            NEWWORDS = self.newWords.get(0.0,tk.END)
+            GRAMMAR = self.grammar.get(0.0,tk.END)
+            SENTENCES = self.sentences.get(0.0,tk.END)
+            HOMEWORK = self.homework.get(0.0,tk.END)
+            self.altogether.delete(0.0,tk.END)
+            SPEAK = speakVar.get()
+            READ = readVar.get()
+            WRITE = writeVar.get()
+            LISTEN = listenVar.get()
+            SPELL = spellVar.get()
+
+            if self.altogetherLabel['text'] == '一共':
+                if len(PAGES) > 0:
+                    self.altogether.insert(0.0, f'Hi {NAME},\n本节课我们主要学习了 {BOOK}, p{PAGES}\n')
+                else:
+                    self.altogether.insert(0.0, f'Hi {NAME},\n本节课我们主要学习了 {BOOK}\n')
+            # behavior
+                if len(SPEAK) > 1 and SPEAK != 'None' \
+                        or len(READ) > 1 and READ != 'None' \
+                        or len(WRITE) > 1 and WRITE != 'None' \
+                        or len(LISTEN) > 1 and LISTEN != 'None' \
+                        or len(SPELL) > 1 and SPELL != 'None' :
+                    self.altogether.insert(tk.END, f'\n{"【课堂表现】"}\n')
+                    if SPEAK == 'good':
+                        self.altogether.insert(tk.END,'说：发音还不错，语言比较流畅.\n')
+                    elif SPEAK == 'bad':
+                        self.altogether.insert(tk.END,'说：部分单词发音有问句，需要及时复习巩固.\n')
+                    if READ == 'good':
+                        self.altogether.insert(tk.END,'Reading - 读：基本能够理解文章大意，掌握文章内容。能够完整翻译全文.\n')
+                    elif READ == 'bad':
+                        self.altogether.insert(tk.END,'读：能够在老师帮助下，理解文章内容。但是对于文章翻译，还需要加强哦.\n')
+                    if WRITE == 'good':
+                        self.altogether.insert(tk.END,'写：组句能力比较好，书写字迹清晰，非常棒.\n')
+                    elif WRITE == 'bad':
+                        self.altogether.insert(tk.END,'写：组句能力需要提高哦，还无法自己造句，需要有意识进行提高哦.\n')
+                    if LISTEN == 'good':
+                        self.altogether.insert(tk.END,'听：听力比较好，能够理解听力全文，并复述.\n')
+                    elif LISTEN == 'bad':
+                        self.altogether.insert(tk.END,'听：听力部分，难度比较大.\n')
+                    if SPELL == 'good':
+                        self.altogether.insert(tk.END,'拼写：听写情况还不错哦，基本掌握单词中英文意思.\n')
+                    elif SPELL == 'bad':
+                        self.altogether.insert(tk.END,'拼写：听写情况比较糟糕，需要课后继续记忆哦，错误的单词抄写3遍.\n')
+
+            # new words
+                if len(NEWWORDS) > 1:
+                    words = int(self.newWords.index('end').split('.')[0]) - 1
+                    wordlist = []
+                    for item in range(1,words+1):
+                        wordlist.append(self.newWords.get(float(item),f"{float(item)} lineend"))
+                    d = ', '.join(wordlist)
+                    self.altogether.insert(tk.END, f'\n【主要单词】\n{d}\n')
+            # grammar
+                if len(GRAMMAR) > 1:
+                    self.altogether.insert(tk.END, f'\n{"【主要语法】"}\n')
+                    words = int(self.grammar.index('end').split('.')[0]) - 1
+                    for item in range(1, words + 1):
+                        self.altogether.insert(tk.END, f'{self.grammar.get(float(item), f"{float(item)} lineend")}\n')
+            # sentences
+                if len(SENTENCES) > 1:
+                    self.altogether.insert(tk.END, f'\n{"【主要句型】"}\n')
+                    words = int(self.sentences.index('end').split('.')[0])-1
+                    for item in range(1,words+1):
+                        self.altogether.insert(tk.END, f'{self.sentences.get(float(item), f"{float(item)} lineend")}\n')
+            # homework
+                if len(HOMEWORK) > 1:
+                    self.altogether.insert(tk.END, f'\n{"【课后作业】"}\n')
+                    self.altogether.insert(tk.END, HOMEWORK)
+
+            elif self.altogetherLabel['text'] == 'Altogether':
+                if len(PAGES) > 0:
+                    self.altogether.insert(0.0, f'Hi {NAME},\nToday we studied {BOOK}, p{PAGES}\n')
+                else:
+                    self.altogether.insert(0.0, f'Hi {NAME},\nToday we studied {BOOK}\n')
+            # new words
+                if len(NEWWORDS) > 1:
+                    words = int(self.newWords.index('end').split('.')[0]) - 1
+                    wordlist = []
+                    for item in range(1,words+1):
+                        wordlist.append(self.newWords.get(float(item),f"{float(item)} lineend"))
+                    d = ', '.join(wordlist)
+                    self.altogether.insert(tk.END, f'\n【New Words】\n{d}\n')
+            # behavior
+                if len(SPEAK) > 1 and SPEAK != 'None' \
+                        or len(READ) > 1 and READ != 'None' \
+                        or len(WRITE) > 1 and WRITE != 'None' \
+                        or len(LISTEN) > 1 and LISTEN != 'None' \
+                        or len(SPELL) > 1 and SPELL != 'None' :
+                    self.altogether.insert(tk.END, f'\n{"【Behavior】"}\n')
+                    if SPEAK == 'good':
+                        self.altogether.insert(tk.END,'Speaking - Their speaking is good.\n')
+                    elif SPEAK == 'bad':
+                        self.altogether.insert(tk.END,'Speaking - Their speaking needs improvement.\n')
+                    if READ == 'good':
+                        self.altogether.insert(tk.END,'Reading - They can almost completely understand the readings.\n')
+                    elif READ == 'bad':
+                        self.altogether.insert(tk.END,'Reading - It is difficult for them to understand the meaning of the readings.\n')
+                    if WRITE == 'good':
+                        self.altogether.insert(tk.END,'Writing - Their writing is good.\n')
+                    elif WRITE == 'bad':
+                        self.altogether.insert(tk.END,'Writing - It is difficult for them to make full sentences.\n')
+                    if LISTEN == 'good':
+                        self.altogether.insert(tk.END,'Listening - They can understand what they hear without much repetition.\n')
+                    elif LISTEN == 'bad':
+                        self.altogether.insert(tk.END,'Listening - Listening is very difficult for them.  I have to repeat the same thing many times.\n')
+                    if SPELL == 'good':
+                        self.altogether.insert(tk.END,'Spelling - Their spelling is good with very few errors.\n')
+                    elif SPELL == 'bad':
+                        self.altogether.insert(tk.END,'Spelling - Their spelling is bad.  They should write the misspelled words 3 times each.\n')
+            # grammar
+                if len(GRAMMAR) > 1:
+                    self.altogether.insert(tk.END, f'\n{"【Grammar】"}\n')
+                    words = int(self.grammar.index('end').split('.')[0]) - 1
+                    for item in range(1, words + 1):
+                        self.altogether.insert(tk.END, f'{self.grammar.get(float(item), f"{float(item)} lineend")}\n')
+            # sentences
+                if len(SENTENCES) > 1:
+                    self.altogether.insert(tk.END, f'\n{"【Sentences】"}\n')
+                    words = int(self.sentences.index('end').split('.')[0])-1
+                    for item in range(1,words+1):
+                        self.altogether.insert(tk.END, f'{self.sentences.get(float(item), f"{float(item)} lineend")}\n')
+            # homework
+                if len(HOMEWORK) > 1:
+                    self.altogether.insert(tk.END, f'\n{"【Homework】"}\n')
+                    self.altogether.insert(tk.END, HOMEWORK)
+
+        self.buttonLabel = tk.Frame(self.leftColumn)
+        self.buttonLabel.pack(side=tk.LEFT,fill=tk.BOTH,expand=True)
+
+        self.clearAllButton = tk.Button(self.buttonLabel,text='Clear All',font=font_labels,command=clear_all)
+        self.clearAllButton.pack(fill=tk.BOTH,expand=True)
+
+        self.FinishButton = tk.Button(self.buttonLabel,text='Finish',font=font_labels,command=combine)
+        self.FinishButton.pack(fill=tk.BOTH,expand=True)
+    # center column left
+        self.newWordsLabel = tk.LabelFrame(self.centerColumnLeft,text='New Words',font=font_labels)
+        self.newWordsLabel.pack(fill=tk.BOTH,expand=True)
+        self.newWords = ScrolledText(self.newWordsLabel,width=40,height=15,undo=True,autoseparators=True,maxundo=20,wrap=tk.WORD)
+        self.newWords.pack(fill=tk.BOTH,expand=True)
+
+        self.grammarLabel = tk.LabelFrame(self.centerColumnLeft,text='Grammar',font=font_labels)
+        self.grammarLabel.pack(fill=tk.BOTH,expand=True)
+        self.grammar = ScrolledText(self.grammarLabel,width=40,height=15,undo=True,autoseparators=True,maxundo=20,wrap=tk.WORD)
+        self.grammar.pack(fill=tk.BOTH,expand=True)
+    # center column right
+        self.sentencesLabel = tk.LabelFrame(self.centerColumnRight,text='Sentences',font=font_labels)
+        self.sentencesLabel.pack(fill=tk.BOTH,expand=True)
+        self.sentences = ScrolledText(self.sentencesLabel,width=40,height=15,undo=True,autoseparators=True,maxundo=20,wrap=tk.WORD)
+        self.sentences.pack(fill=tk.BOTH,expand=True)
+
+        self.homeworkLabel = tk.LabelFrame(self.centerColumnRight,text='Homework',font=font_labels)
+        self.homeworkLabel.pack(fill=tk.BOTH,expand=True)
+        self.homework = ScrolledText(self.homeworkLabel,width=40,height=15,undo=True,autoseparators=True,maxundo=20,wrap=tk.WORD)
+        self.homework.pack(fill=tk.BOTH,expand=True)
+    # right column
+        self.altogetherLabel = tk.LabelFrame(self.rightColumn,text='Altogether',font=font_labels)
+        self.altogetherLabel.pack(fill=tk.BOTH,expand=True)
+        self.altogether = ScrolledText(self.altogetherLabel,width=40,height=30,undo=True,autoseparators=True,maxundo=20,wrap=tk.WORD)
+        self.altogether.pack(fill=tk.BOTH,expand=True)
+##-OTHER MENU-##########################################################################################################
+        def help():
+            self.altogether.replace(0.0, tk.END, f"Hello and welcome to Fast Comment Maker {VERSION}!\n\n"
+f"This program was created with the goal of making closing classes much easier "
+f"and less time consuming.  It is very easy to use.\n\n"
+f"Just put the information in the correct boxes and hit 'Finish' "
+f"to have it make a complete, organized comment you can send to the student.\n\n"
+f"The menu bar has all of the grammar and vocabulary found in the books used "
+f"most often.  Just choose the book and what you did during class.\n\n"
+f"Happy commenting!\n\nWarning: change the language before you input data.\n\n"
+f"你好，欢迎使用快速评论生成器 {VERSION}！”\n\n"
+f"该计划旨在使结业课程更容易"
+f"和更少的时间消耗。它很容易使用。\n\n"
+f"只需将信息放入正确的框中，然后点击‘完成’"
+f"要让它做出完整、有组织的评论，你可以发送给学生。\n\n"
+f"菜单栏包含所用书籍中的所有语法和词汇"
+f"最常见。只需选择书和你在课堂上所做的事情。\n\n"
+f"反馈快乐！\n\n警告：输入数据前更改语言。")
+        def basics():
+            self.sentences.insert(0.0, """I don't understand (我听不懂)
+Please say that again (请再说一下)
+Can you speak more slowly? (请更慢地说一下)
+What does...mean? (...什么意思？)
+How do you spell...? (...怎么拼写？)""")
+        def switch_lang():
+            if self.studentNameLabel['text'] == 'Student Name':
+                self.studentNameLabel['text'] = '名字'
+            elif self.studentNameLabel['text'] == '名字':
+                self.studentNameLabel['text'] = 'Student Name'
+            if self.bookNameLabel['text'] == 'Book Name':
+                self.bookNameLabel['text'] = '哪本书'
+            elif self.bookNameLabel['text'] == '哪本书':
+                self.bookNameLabel['text'] = 'Book Name'
+            if self.bookPageLabel['text'] == 'Pages':
+                self.bookPageLabel['text'] = '哪张页'
+            elif self.bookPageLabel['text'] == '哪张页':
+                self.bookPageLabel['text'] = 'Pages'
+            if self.behaviorLabel['text'] == 'Behavior':
+                self.behaviorLabel['text'] = '课堂表现'
+            elif self.behaviorLabel['text'] == '课堂表现':
+                self.behaviorLabel['text'] = 'Behavior'
+            if self.newWordsLabel['text'] == 'New Words':
+                self.newWordsLabel['text'] = '主要单词'
+            elif self.newWordsLabel['text'] == '主要单词':
+                self.newWordsLabel['text'] = 'New Words'
+            if self.grammarLabel['text'] == 'Grammar':
+                self.grammarLabel['text'] = '语法'
+            elif self.grammarLabel['text'] == '语法':
+                self.grammarLabel['text'] = 'Grammar'
+            if self.sentencesLabel['text'] == 'Sentences':
+                self.sentencesLabel['text'] = '句子'
+            elif self.sentencesLabel['text'] == '句子':
+                self.sentencesLabel['text'] = 'Sentences'
+            if self.homeworkLabel['text'] == 'Homework':
+                self.homeworkLabel['text'] = '作业'
+            elif self.homeworkLabel['text'] == '作业':
+                self.homeworkLabel['text'] = 'Homework'
+            if self.altogetherLabel['text'] == 'Altogether':
+                self.altogetherLabel['text'] = '一共'
+            elif self.altogetherLabel['text'] == '一共':
+                self.altogetherLabel['text'] = 'Altogether'
+            if self.clearAllButton['text'] == 'Clear All':
+                self.clearAllButton['text'] = '清零'
+            elif self.clearAllButton['text'] == '清零':
+                self.clearAllButton['text'] = 'Clear All'
+            if self.FinishButton['text'] == 'Finish':
+                self.FinishButton['text'] = '结束'
+            elif self.FinishButton['text'] == '结束':
+                self.FinishButton['text'] = 'Finish'
+            if self.speakingLabel['text'] == 'Speaking':
+                self.speakingLabel['text'] = '说'
+            elif self.speakingLabel['text'] == '说':
+                self.speakingLabel['text'] = 'Speaking'
+            if self.writingLabel['text'] == 'Writing':
+                self.writingLabel['text'] = '写'
+            elif self.writingLabel['text'] == '写':
+                self.writingLabel['text'] = 'Writing'
+            if self.readingLabel['text'] == 'Reading':
+                self.readingLabel['text'] = '阅读'
+            elif self.readingLabel['text'] == '阅读':
+                self.readingLabel['text'] = 'Reading'
+            if self.spellingLabel['text'] == 'Spelling':
+                self.spellingLabel['text'] = '拼写'
+            elif self.spellingLabel['text'] == '拼写':
+                self.spellingLabel['text'] = 'Spelling'
+            if self.listeningLabel['text'] == 'Listening':
+                self.listeningLabel['text'] = '听力'
+            elif self.listeningLabel['text'] == '听力':
+                self.listeningLabel['text'] = 'Listening'
+        def ipa():
+            ipa_win = tk.Tk()
+            ipa_win.title('Phonics Symbols')
+            title_label = tk.Label(ipa_win, text='Phonics Symbols Reference Chart', font=['Times', 15, 'underline'])
+            title_label.grid(row=0, column=0, columnspan=8, sticky=tk.EW)
+            for sound, example, row, col, color in IPA:
+                sound = tk.Button(ipa_win, text=f'{sound} – {example}   ', font=['Times', 15, 'normal'], bg=color,
+                                  command=lambda x=sound: put_symbols_here.insert(tk.INSERT, x)).grid(row=row,
+                                                                                                      column=col,
+                                                                                                      sticky=tk.EW)
+            separator = tk.Label(ipa_win, height=1)
+            separator.grid(row=4, column=0, columnspan=6)
+            put_symbols_here = tk.Entry(ipa_win, font=['Times', 15, 'normal'])
+            put_symbols_here.grid(row=8, column=0, columnspan=8, sticky=tk.EW)
+            ipa_win.mainloop()
+        def pos():
+            pos_win = tk.Tk()
+            pos_win.title('Language Terms')
+            title_label = tk.Label(pos_win, text='Language Terms', font=['Times', 15, 'underline'])
+            title_label.grid(row=0, column=0, columnspan=2, sticky=tk.EW)
+            POS.sort(key=lambda x: x[0])  # alphabetize word list
+            n = 1
+            for i in POS:
+                sound = tk.Label(pos_win, text=f'{i[0]} {i[1]}', font=['Times', 15, 'normal'])
+                if POS.index(i) < len(POS) // 2:
+                    sound.grid(row=n, column=0, sticky=tk.W)
+                    n += 1
+                if POS.index(i) == len(POS) // 2:
+                    n = 1
+                    sound.grid(row=n, column=1, sticky=tk.W)
+                    n += 1
+                elif POS.index(i) >= len(POS) // 2:
+                    sound.grid(row=n, column=1, sticky=tk.W)
+                    n += 1
+            pos_win.mainloop()
+        def text_to_qr():
+            to_convert = self.altogether.get(0.0, tk.END)
+            to_scan = pyqrcode.create(to_convert, encoding='utf-8')
+            to_scan.png('My QRcode.png', scale=6)
+            from PIL import Image
+            img = Image.open('My QRcode.png')
+            img.show()
+
+        other_menu.add_command(label='Help', command=help)
+        other_menu.add_command(label='Phonics', command=ipa)
+        other_menu.add_command(label='Language Vocab', command=pos)
+        other_menu.add_command(label='Useful Phrases', command=basics)
+        other_menu.add_command(label='Switch Languages', command=switch_lang)
+        other_menu.add_command(label='Text to QRcode', command=text_to_qr)
+##-THINK MENUS-#########################################################################################################
+    # MT1
+        def add_grammar_mt1(x):
+            self.grammar.insert(tk.END, f'{MT1[0][x][1]}\n\n')
+            self.book.current(13)
+        mt1grammar = tk.Menu(mt1menu, tearoff=0)
+        mt1menu.add_cascade(label='Grammar', menu=mt1grammar, compound=tk.LEFT)
+        for i in range(len(MT1[0])):
+            mt1grammar.add_command(label=MT1[0][i][0], command=lambda x=i: add_grammar_mt1(x))
+        def add_vocab_mt1(x):
+            self.newWords.insert(tk.END, f'{MT1[1][x][1]}\n\n')
+            self.book.current(13)
+        mt1vocab = tk.Menu(mt1menu, tearoff=0)
+        mt1menu.add_cascade(label='Vocabulary', menu=mt1vocab, compound=tk.LEFT)
+        for i in range(len(MT1[1])):
+            mt1vocab.add_command(label=MT1[1][i][0], command=lambda x=i: add_vocab_mt1(x))
+    # MT2
+        def add_grammar_mt2(x):
+            self.grammar.insert(tk.END, f'{MT2[0][x][1]}\n\n')
+            self.book.current(14)
+        mt2grammar = tk.Menu(mt2menu, tearoff=0)
+        mt2menu.add_cascade(label='Grammar', menu=mt2grammar, compound=tk.LEFT)
+        for i in range(len(MT2[0])):
+            mt2grammar.add_command(label=MT2[0][i][0], command=lambda x=i: add_grammar_mt2(x))
+        def add_vocab_mt2(x):
+            self.newWords.insert(tk.END, f'{MT2[1][x][1]}\n\n')
+            self.book.current(14)
+        mt2vocab = tk.Menu(mt2menu, tearoff=0)
+        mt2menu.add_cascade(label='Vocabulary', menu=mt2vocab, compound=tk.LEFT)
+        for i in range(len(MT2[1])):
+            mt2vocab.add_command(label=MT2[1][i][0], command=lambda x=i: add_vocab_mt2(x))
+    # MT3
+        def add_grammar_mt3(x):
+            self.grammar.insert(tk.END, f'{MT3[0][x][1]}\n\n')
+            self.book.current(15)
+        mt3grammar = tk.Menu(mt3menu, tearoff=0)
+        mt3menu.add_cascade(label='Grammar', menu=mt3grammar, compound=tk.LEFT)
+        for i in range(len(MT3[0])):
+            mt3grammar.add_command(label=MT3[0][i][0], command=lambda x=i: add_grammar_mt3(x))
+        def add_vocab_mt3(x):
+            self.newWords.insert(tk.END, f'{MT3[1][x][1]}\n\n')
+            self.book.current(15)
+        mt3vocab = tk.Menu(mt3menu, tearoff=0)
+        mt3menu.add_cascade(label='Vocabulary', menu=mt3vocab, compound=tk.LEFT)
+        for i in range(len(MT3[1])):
+            mt3vocab.add_command(label=MT3[1][i][0], command=lambda x=i: add_vocab_mt3(x))
+    # MT4
+        def add_grammar_mt4(x):
+            self.grammar.insert(tk.END, f'{MT4[0][x][1]}\n\n')
+            self.book.current(16)
+        mt4grammar = tk.Menu(mt4menu, tearoff=0)
+        mt4menu.add_cascade(label='Grammar', menu=mt4grammar, compound=tk.LEFT)
+        for i in range(len(MT4[0])):
+            mt4grammar.add_command(label=MT4[0][i][0], command=lambda x=i: add_grammar_mt4(x))
+        def add_vocab_mt4(x):
+            self.newWords.insert(tk.END, f'{MT4[1][x][1]}\n\n')
+            self.book.current(16)
+        mt4vocab = tk.Menu(mt4menu, tearoff=0)
+        mt4menu.add_cascade(label='Vocabulary', menu=mt4vocab, compound=tk.LEFT)
+        for i in range(len(MT4[1])):
+            mt4vocab.add_command(label=MT4[1][i][0], command=lambda x=i: add_vocab_mt4(x))
+    # MT5
+        def add_grammar_mt5(x):
+            self.grammar.insert(tk.END, f'{MT5[0][x][1]}\n\n')
+            self.book.current(17)
+        mt5grammar = tk.Menu(mt5menu, tearoff=0)
+        mt5menu.add_cascade(label='Grammar', menu=mt5grammar, compound=tk.LEFT)
+        for i in range(len(MT5[0])):
+            mt5grammar.add_command(label=MT5[0][i][0], command=lambda x=i: add_grammar_mt5(x))
+        def add_vocab_mt5(x):
+            self.newWords.insert(tk.END, f'{MT5[1][x][1]}\n\n')
+            self.book.current(17)
+        mt5vocab = tk.Menu(mt5menu, tearoff=0)
+        mt5menu.add_cascade(label='Vocabulary', menu=mt5vocab, compound=tk.LEFT)
+        for i in range(len(MT5[1])):
+            mt5vocab.add_command(label=MT5[1][i][0], command=lambda x=i: add_vocab_mt5(x))
+    # MT6
+        def add_grammar_mt6(x):
+            self.grammar.insert(tk.END, f'{MT6[0][x][1]}\n\n')
+            self.book.current(18)
+        mt6grammar = tk.Menu(mt6menu, tearoff=0)
+        mt6menu.add_cascade(label='Grammar', menu=mt6grammar, compound=tk.LEFT)
+        for i in range(len(MT6[0])):
+            mt6grammar.add_command(label=MT6[0][i][0], command=lambda x=i: add_grammar_mt6(x))
+        def add_vocab_mt6(x):
+            self.newWords.insert(tk.END, f'{MT6[1][x][1]}\n\n')
+            self.book.current(18)
+        mt6vocab = tk.Menu(mt6menu, tearoff=0)
+        mt6menu.add_cascade(label='Vocabulary', menu=mt6vocab, compound=tk.LEFT)
+        for i in range(len(MT6[1])):
+            mt6vocab.add_command(label=MT6[1][i][0], command=lambda x=i: add_vocab_mt6(x))
+    # ht1
+        def add_vocab_ht1(x):
+            self.book.current(1)
+            self.newWords.replace(0.0, tk.END, (ht1[x][1]))
+            self.sentences.replace(0.0, tk.END, (ht1[x][2]))
+        ht1menu = tk.Menu(hello_teddy_menu, tearoff=0)
+        hello_teddy_menu.add_cascade(label='Hello Teddy 1', menu=ht1menu, compound=tk.LEFT)
+        for i in range(len(ht1)):
+            ht1menu.add_command(label=ht1[i][0], command=lambda x=i: add_vocab_ht1(x))
+    # ht2
+        def add_vocab_ht2(x):
+            self.book.current(2)
+            self.newWords.replace(0.0, tk.END, (ht2[x][1]))
+            self.sentences.replace(0.0, tk.END, (ht2[x][2]))
+        ht2menu = tk.Menu(hello_teddy_menu, tearoff=0)
+        hello_teddy_menu.add_cascade(label='Hello Teddy 2', menu=ht2menu, compound=tk.LEFT)
+        for i in range(len(ht2)):
+            ht2menu.add_command(label=ht2[i][0], command=lambda x=i: add_vocab_ht2(x))
+    # ht3
+        def add_vocab_ht3(x):
+            self.book.current(3)
+            self.newWords.replace(0.0, tk.END, (ht3[x][1]))
+            self.sentences.replace(0.0, tk.END, (ht3[x][2]))
+        ht3menu = tk.Menu(hello_teddy_menu, tearoff=0)
+        hello_teddy_menu.add_cascade(label='Hello Teddy 3', menu=ht3menu, compound=tk.LEFT)
+        for i in range(len(ht3)):
+            ht3menu.add_command(label=ht3[i][0], command=lambda x=i: add_vocab_ht3(x))
+    # ht4
+        def add_vocab_ht4(x):
+            self.book.current(4)
+            self.newWords.replace(0.0, tk.END, (ht4[x][1]))
+            self.sentences.replace(0.0, tk.END, (ht4[x][2]))
+        ht4menu = tk.Menu(hello_teddy_menu, tearoff=0)
+        hello_teddy_menu.add_cascade(label='Hello Teddy 4', menu=ht4menu, compound=tk.LEFT)
+        for i in range(len(ht4)):
+            ht4menu.add_command(label=ht4[i][0], command=lambda x=i: add_vocab_ht4(x))
+    # ht5
+        def add_vocab_ht5(x):
+            self.book.current(5)
+            self.newWords.replace(0.0, tk.END, (ht5[x][1]))
+            self.sentences.replace(0.0, tk.END, (ht5[x][2]))
+        ht5menu = tk.Menu(hello_teddy_menu, tearoff=0)
+        hello_teddy_menu.add_cascade(label='Hello Teddy 5', menu=ht5menu, compound=tk.LEFT)
+        for i in range(len(ht5)):
+            ht5menu.add_command(label=ht5[i][0], command=lambda x=i: add_vocab_ht5(x))
+    # ht6
+        def add_vocab_ht6(x):
+            self.book.current(6)
+            self.newWords.replace(0.0, tk.END, (ht6[x][1]))
+            self.sentences.replace(0.0, tk.END, (ht6[x][2]))
+        ht6menu = tk.Menu(hello_teddy_menu, tearoff=0)
+        hello_teddy_menu.add_cascade(label='Hello Teddy 6', menu=ht6menu, compound=tk.LEFT)
+        for i in range(len(ht6)):
+            ht6menu.add_command(label=ht6[i][0], command=lambda x=i: add_vocab_ht6(x))
+    # GW1
+        def add_vocab_GW1(x):
+            self.book.current(7)
+            self.newWords.replace(0.0, tk.END, (GW1[x][1]))
+            self.sentences.replace(0.0, tk.END, (GW1[x][2]))
+        GW1menu = tk.Menu(guess_what_menu, tearoff=0)
+        guess_what_menu.add_cascade(label='Guess What 1', menu=GW1menu, compound=tk.LEFT)
+        for i in range(len(GW1)):
+            GW1menu.add_command(label=GW1[i][0], command=lambda x=i: add_vocab_GW1(x))
+    # GW2
+        def add_vocab_GW2(x):
+            self.book.current(8)
+            self.newWords.replace(0.0, tk.END, (GW2[x][1]))
+            self.sentences.replace(0.0, tk.END, (GW2[x][2]))
+        GW2menu = tk.Menu(guess_what_menu, tearoff=0)
+        guess_what_menu.add_cascade(label='Guess What 2', menu=GW2menu, compound=tk.LEFT)
+        for i in range(len(GW2)):
+            GW2menu.add_command(label=GW2[i][0], command=lambda x=i: add_vocab_GW2(x))
+    # GW3
+        def add_vocab_GW3(x):
+            self.book.current(9)
+            self.newWords.replace(0.0, tk.END, (GW3[x][1]))
+            self.sentences.replace(0.0, tk.END, (GW3[x][2]))
+        GW3menu = tk.Menu(guess_what_menu, tearoff=0)
+        guess_what_menu.add_cascade(label='Guess What 3', menu=GW3menu, compound=tk.LEFT)
+        for i in range(len(GW3)):
+            GW3menu.add_command(label=GW3[i][0], command=lambda x=i: add_vocab_GW3(x))
+    # GW4
+        def add_vocab_GW4(x):
+            self.book.current(10)
+            self.newWords.replace(0.0, tk.END, (GW4[x][1]))
+            self.sentences.replace(0.0, tk.END, (GW4[x][2]))
+        GW4menu = tk.Menu(guess_what_menu, tearoff=0)
+        guess_what_menu.add_cascade(label='Guess What 4', menu=GW4menu, compound=tk.LEFT)
+        for i in range(len(GW4)):
+            GW4menu.add_command(label=GW4[i][0], command=lambda x=i: add_vocab_GW4(x))
+    # SS
+        def add_vocab_ss(x, v):
+            self.book.current(11)
+            self.newWords.replace(0.0, tk.END, (SS[x][1][v][1]))
+            self.sentences.replace(0.0, tk.END, (SS[x][1][v][2]))
+        for i in range(10):
+            super_starters_unit = tk.Menu(super_starter_menu, tearoff=0)
+            super_starter_menu.add_cascade(label=SS[i][0], menu=super_starters_unit, compound=tk.LEFT)
+            for j in range(4):
+                super_starters_unit.add_command(label=SS[i][1][j][0], command=lambda x=i, v=j: add_vocab_ss(x, v))
+    # MM
+        def add_vocab_mm(x, v):
+            self.book.current(12)
+            self.newWords.replace(0.0, tk.END, (MM[x][1][v][1]))
+            self.sentences.replace(0.0, tk.END, (MM[x][1][v][2]))
+            if x == 7 and v == 0:
+                self.grammar.replace(0.0, tk.END, MM[x][1][v][3])
+        for i in range(10):
+            mighty_mover_unit = tk.Menu(mighty_mover_menu, tearoff=0)
+            mighty_mover_menu.add_cascade(label=MM[i][0], menu=mighty_mover_unit, compound=tk.LEFT)
+            for j in range(4):
+                mighty_mover_unit.add_command(label=MM[i][1][j][0], command=lambda x=i, v=j: add_vocab_mm(x, v))
+########################################################################################################################
+root = tk.Tk()
+VERSION = 'Beta 3.0'
+NAME = f'课评终结者 {VERSION}'
+root.title(NAME)
+win_W = 1165
+win_H = 487
+root.geometry(f'+{root.winfo_screenwidth()//2-win_W//2}+{root.winfo_screenheight()//2-win_H//2-50}')
+AppWindow(root)
+root.mainloop()
